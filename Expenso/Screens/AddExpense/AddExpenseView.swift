@@ -32,7 +32,8 @@ struct AddExpenseView: View {
         DropdownOption(key: TRANS_TAG_PERSONAL, val: "Personal"),
         DropdownOption(key: TRANS_TAG_ENTERTAINMENT, val: "Entertainment"),
         DropdownOption(key: TRANS_TAG_OTHERS, val: "Others"),
-        DropdownOption(key: TRANS_TAG_UTILITIES, val: "Utilities")
+        DropdownOption(key: TRANS_TAG_UTILITIES, val: "Utilities"),
+        DropdownOption(key: TRANS_TAG_CAR, val: "Car")
     ]
     
     var body: some View {

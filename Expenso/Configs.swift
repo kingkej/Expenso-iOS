@@ -24,7 +24,7 @@ let IMAGE_OPTION_ICON = "settings_icon"
 let UD_USE_BIOMETRIC = "useBiometric"
 let UD_EXPENSE_CURRENCY = "expenseCurrency"
 
-let CURRENCY_LIST = ["₹", "$", "€", "¥", "£", "¢", "₭"]
+let CURRENCY_LIST = ["₹", "$", "€", "¥", "£", "¢", "₭", "₽"]
 
 // Transaction types
 let TRANS_TYPE_INCOME = "income"
@@ -41,6 +41,7 @@ let TRANS_TAG_PERSONAL = "personal"
 let TRANS_TAG_ENTERTAINMENT = "entertainment"
 let TRANS_TAG_OTHERS = "others"
 let TRANS_TAG_UTILITIES = "utilities"
+let TRANS_TAG_CAR = "car"
 
 func getTransTagIcon(transTag: String) -> String {
     switch transTag {
@@ -54,7 +55,25 @@ func getTransTagIcon(transTag: String) -> String {
         case TRANS_TAG_ENTERTAINMENT: return "trans_type_entertainment"
         case TRANS_TAG_OTHERS: return "trans_type_others"
         case TRANS_TAG_UTILITIES: return "trans_type_utilities"
+        case TRANS_TAG_CAR: return "trans_type_car"
         default: return "trans_type_others"
+    }
+}
+
+func getTransTagEmoji(transTag: String) -> String {
+    switch transTag {
+        case TRANS_TAG_TRANSPORT: return "🚗"
+        case TRANS_TAG_FOOD: return "🍔"
+        case TRANS_TAG_HOUSING: return "🏠"
+        case TRANS_TAG_INSURANCE: return "🛡️"
+        case TRANS_TAG_MEDICAL: return "💊"
+        case TRANS_TAG_SAVINGS: return "💰"
+        case TRANS_TAG_PERSONAL: return "🧍"
+        case TRANS_TAG_ENTERTAINMENT: return "🎉"
+        case TRANS_TAG_OTHERS: return "🔍"
+        case TRANS_TAG_UTILITIES: return "💡"
+        case TRANS_TAG_CAR: return "⚡"
+        default: return "🔍"
     }
 }
 

@@ -207,9 +207,11 @@ struct ExpenseTransView: View {
         HStack {
             
             NavigationLink(destination: NavigationLazyView(ExpenseFilterView(categTag: expenseObj.tag)), label: {
-                Image(getTransTagIcon(transTag: expenseObj.tag ?? ""))
-                    .resizable().frame(width: 24, height: 24).padding(16)
-                    .background(Color.primary_color).cornerRadius(4)
+                //Image(getTransTagIcon(transTag: expenseObj.tag ?? ""))
+                  //  .resizable().frame(width: 24, height: 24).padding(16)
+                    //.background(Color.primary_color).cornerRadius(4)
+                Text(getTransTagEmoji(transTag: expenseObj.tag ?? ""))
+                    .padding(16)
             })
             
             VStack(alignment: .leading, spacing: 6) {

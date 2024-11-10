@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -606,7 +606,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"Expenso/Preview Content\"";
-				DEVELOPMENT_TEAM = 7S7EBZGDA6;
+				DEVELOPMENT_TEAM = KTNPDHXXV3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Expenso/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
@@ -630,7 +630,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"Expenso/Preview Content\"";
-				DEVELOPMENT_TEAM = 7S7EBZGDA6;
+				DEVELOPMENT_TEAM = KTNPDHXXV3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Expenso/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;

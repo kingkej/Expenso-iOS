@@ -90,23 +90,25 @@ class ExpenseSettingsViewModel: ObservableObject {
     }
     
     func generateCSV() {
-        
         let fileName = "Expense.csv"
         let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
-        var csvText = "Title,Amount,Type,Tag,Occured On,Note\n"
-        
+        var csvText = "\u{FEFF}Title,Amount,Type,Tag,Occured On,Note\n" // Add BOM at the start
+
         for csvModel in csvModelArr {
             let row = "\"\(csvModel.title)\",\"\(csvModel.amount)\",\"\(csvModel.transactionType)\",\"\(csvModel.tag)\",\"\(csvModel.occuredOn)\",\"\(csvModel.note)\"\n"
             csvText.append(row)
         }
-        
+
         do {
-            try csvText.write(to: path!, atomically: true, encoding: String.Encoding.utf8)
+            try csvText.write(to: path!, atomically: true, encoding: .utf8)
             let av = UIActivityViewController(activityItems: [path!], applicationActivities: nil)
             UIApplication.shared.windows.first?.rootViewController?.present(av, animated: true, completion: nil)
-        } catch { alertMsg = "\(error)"; showAlert = true }
-        
-        print(path ?? "not found")
+        } catch {
+            alertMsg = "\(error)"
+            showAlert = true
+        }
+
+        print(path ?? "File not found")
     }
     
     deinit {
