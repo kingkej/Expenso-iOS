@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ExtraLottie
 
 struct ExpenseView: View {
     
@@ -20,6 +21,7 @@ struct ExpenseView: View {
     @State private var showOptionsSheet = false
     @State private var displayAbout = false
     @State private var displaySettings = false
+    @State private var showAddExpenseSheet = false
     
     var body: some View {
         NavigationView {
@@ -30,22 +32,22 @@ struct ExpenseView: View {
                     NavigationLink(destination: NavigationLazyView(ExpenseSettingsView()), isActive: $displaySettings, label: {})
                     NavigationLink(destination: NavigationLazyView(AboutView()), isActive: $displayAbout, label: {})
                     ToolbarModelView(title: "Dashboard", hasBackButt: false, button1Icon: IMAGE_OPTION_ICON, button2Icon: IMAGE_FILTER_ICON) { self.presentationMode.wrappedValue.dismiss() }
-                        button1Method: { self.showOptionsSheet = true }
-                        button2Method: { self.showFilterSheet = true }
+                    button1Method: { self.showOptionsSheet = true }
+                    button2Method: { self.showFilterSheet = true }
                         .actionSheet(isPresented: $showFilterSheet) {
                             ActionSheet(title: Text("Select a filter"), buttons: [
-                                    .default(Text("Overall")) { filter = .all },
-                                    .default(Text("Last 7 days")) { filter = .week },
-                                    .default(Text("Last 30 days")) { filter = .month },
-                                    .cancel()
+                                .default(Text("Overall")) { filter = .all },
+                                .default(Text("Last 7 days")) { filter = .week },
+                                .default(Text("Last 30 days")) { filter = .month },
+                                .cancel()
                             ])
                         }
                     ExpenseMainView(filter: filter)
                         .actionSheet(isPresented: $showOptionsSheet) {
                             ActionSheet(title: Text("Select an option"), buttons: [
-                                    .default(Text("About")) { self.displayAbout = true },
-                                    .default(Text("Settings")) { self.displaySettings = true },
-                                    .cancel()
+                                .default(Text("About")) { self.displayAbout = true },
+                                .default(Text("Settings")) { self.displaySettings = true },
+                                .cancel()
                             ])
                         }
                     Spacer()
@@ -55,13 +57,20 @@ struct ExpenseView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        NavigationLink(destination: NavigationLazyView(AddExpenseView(viewModel: AddExpenseViewModel())),
-                                       label: { Image("plus_icon").resizable().frame(width: 32.0, height: 32.0) })
-                        .padding().background(Color.main_color).cornerRadius(35)
+                        Button(action: {
+                            showAddExpenseSheet = true
+                        }) {
+                            Image("plus_icon").resizable().frame(width: 32.0, height: 32.0)
+                        }
+                        .padding()
+                        .background(Color.main_color).cornerRadius(35)
                     }
                 }.padding()
             }
             .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $showAddExpenseSheet) {
+            AddExpenseView(viewModel: AddExpenseViewModel())
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .navigationBarHidden(true)
@@ -106,7 +115,9 @@ struct ExpenseMainView: View {
         ScrollView(showsIndicators: false) {
             
             if fetchRequest.wrappedValue.isEmpty {
-                LottieView(animType: .empty_face).frame(width: 300, height: 300)
+                ExtraLottieView(animationName: "empty-face")
+                    .frame(
+                        width: 300, height: 300)
                 VStack {
                     TextView(text: "No Transaction Yet!", type: .h6).foregroundColor(Color.text_primary_color)
                     TextView(text: "Add a transaction and it will show up here", type: .body_1).foregroundColor(Color.text_secondary_color).padding(.top, 2)
@@ -208,8 +219,8 @@ struct ExpenseTransView: View {
             
             NavigationLink(destination: NavigationLazyView(ExpenseFilterView(categTag: expenseObj.tag)), label: {
                 //Image(getTransTagIcon(transTag: expenseObj.tag ?? ""))
-                  //  .resizable().frame(width: 24, height: 24).padding(16)
-                    //.background(Color.primary_color).cornerRadius(4)
+                //  .resizable().frame(width: 24, height: 24).padding(16)
+                //.background(Color.primary_color).cornerRadius(4)
                 Text(getTransTagEmoji(transTag: expenseObj.tag ?? ""))
                     .padding(16)
             })

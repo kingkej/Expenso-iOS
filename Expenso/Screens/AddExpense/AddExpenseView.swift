@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import Pow
 
 struct AddExpenseView: View {
-    
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     // CoreData
     @Environment(\.managedObjectContext) var managedObjectContext
@@ -38,148 +38,113 @@ struct AddExpenseView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.primary_color.edgesIgnoringSafeArea(.all)
-                
-                VStack {
+            VStack {
+                ScrollView(showsIndicators: false) {
+                    TextField("Title", text: $viewModel.title)
+                        .promptFrameAndBackground(maxHeight: 55)
+                        .padding(.top, 25)
                     
-                    Group {
-                        if viewModel.expenseObj == nil {
-                            ToolbarModelView(title: "Add Transaction") { self.presentationMode.wrappedValue.dismiss() }
-                        } else {
-                            ToolbarModelView(title: "Edit Transaction", button1Icon: IMAGE_DELETE_ICON) { self.presentationMode.wrappedValue.dismiss() }
-                                button1Method: { self.confirmDelete = true }
-                        }
-                    }.alert(isPresented: $confirmDelete,
-                            content: {
-                                Alert(title: Text(APP_NAME), message: Text("Are you sure you want to delete this transaction?"),
-                                    primaryButton: .destructive(Text("Delete")) {
-                                        viewModel.deleteTransaction(managedObjectContext: self.managedObjectContext)
-                                    }, secondaryButton: Alert.Button.cancel(Text("Cancel"), action: { confirmDelete = false })
-                                )
-                            })
+                    TextField("Amount", text: $viewModel.amount)
+                        .keyboardType(.decimalPad)
+                        .promptFrameAndBackground(maxHeight: 55)
+                        .padding(.bottom, 25)
                     
-                    ScrollView(showsIndicators: false) {
-                        
-                        VStack(spacing: 12) {
-                            
-                            TextField("Title", text: $viewModel.title)
-                                .modifier(InterFont(.regular, size: 16))
-                                .accentColor(Color.text_primary_color)
-                                .frame(height: 50).padding(.leading, 16)
-                                .background(Color.secondary_color)
-                                .cornerRadius(4)
-                            
-                            TextField("Amount", text: $viewModel.amount)
-                                .modifier(InterFont(.regular, size: 16))
-                                .accentColor(Color.text_primary_color)
-                                .frame(height: 50).padding(.leading, 16)
-                                .background(Color.secondary_color)
-                                .cornerRadius(4).keyboardType(.decimalPad)
-                            
-                            DropdownButton(shouldShowDropdown: $viewModel.showTypeDrop, displayText: $viewModel.typeTitle,
-                                           options: typeOptions, mainColor: Color.text_primary_color,
-                                           backgroundColor: Color.secondary_color, cornerRadius: 4, buttonHeight: 50) { key in
-                                let selectedObj = typeOptions.filter({ $0.key == key }).first
-                                if let object = selectedObj {
-                                    viewModel.typeTitle = object.val
-                                    viewModel.selectedType = key
-                                }
-                                viewModel.showTypeDrop = false
+                    // Type Picker
+                    HStack {
+                        Text("Type")
+                        Spacer()
+                        Picker("Type", selection: $viewModel.selectedType) {
+                            ForEach(typeOptions, id: \.key) { option in
+                                Text(option.val).tag(option.key)
                             }
-                            
-                            DropdownButton(shouldShowDropdown: $viewModel.showTagDrop, displayText: $viewModel.tagTitle,
-                                           options: tagOptions, mainColor: Color.text_primary_color,
-                                           backgroundColor: Color.secondary_color, cornerRadius: 4, buttonHeight: 50) { key in
-                                let selectedObj = tagOptions.filter({ $0.key == key }).first
-                                if let object = selectedObj {
-                                    viewModel.tagTitle = object.val
-                                    viewModel.selectedTag = key
-                                }
-                                viewModel.showTagDrop = false
-                            }
-                            
-                            HStack {
-                                DatePicker("PickerView", selection: $viewModel.occuredOn,
-                                           displayedComponents: [.date, .hourAndMinute]).labelsHidden().padding(.leading, 16)
-                                Spacer()
-                            }
-                            .frame(height: 50).frame(maxWidth: .infinity)
-                            .accentColor(Color.text_primary_color)
-                            .background(Color.secondary_color).cornerRadius(4)
-                            
-                            TextField("Note", text: $viewModel.note)
-                                .modifier(InterFont(.regular, size: 16))
-                                .accentColor(Color.text_primary_color)
-                                .frame(height: 50).padding(.leading, 16)
-                                .background(Color.secondary_color)
-                                .cornerRadius(4)
-                            
-                            Button(action: { viewModel.attachImage() }, label: {
-                                HStack {
-                                    Image(systemName: "paperclip")
-                                        .font(.system(size: 18.0, weight: .bold))
-                                        .foregroundColor(Color.text_secondary_color)
-                                        .padding(.leading, 16)
-                                    TextView(text: "Attach an image", type: .button).foregroundColor(Color.text_secondary_color)
-                                    Spacer()
-                                }
-                            })
-                            .frame(height: 50).frame(maxWidth: .infinity)
-                            .background(Color.secondary_color)
-                            .cornerRadius(4)
-                            .actionSheet(isPresented: $showAttachSheet) {
-                                ActionSheet(title: Text("Do you want to remove the attachment?"), buttons: [
-                                    .default(Text("Remove")) { viewModel.removeImage() },
-                                    .cancel()
-                                ])
-                            }
-                            
-                            if let image = viewModel.imageAttached {
-                                Button(action: { showAttachSheet = true }, label: {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(height: 250).frame(maxWidth: .infinity)
-                                        .background(Color.secondary_color)
-                                        .cornerRadius(4)
-                                })
-                            }
-                            
-                            Spacer().frame(height: 150)
-                            Spacer()
                         }
-                        .frame(maxWidth: .infinity).padding(.horizontal, 8)
-                        .alert(isPresented: $viewModel.showAlert,
-                               content: { Alert(title: Text(APP_NAME), message: Text(viewModel.alertMsg), dismissButton: .default(Text("OK"))) })
+                        .onChange(of: viewModel.selectedType) { newKey in
+                            if let selectedObj = typeOptions.first(where: { $0.key == newKey }) {
+                                viewModel.typeTitle = selectedObj.val
+                            }
+                        }
+                    }
+                    .promptFrameAndBackground(maxHeight: 50)
+                    
+                    // Tag Picker
+                    HStack {
+                        Text("Tag")
+                        Spacer()
+                        Picker("Tag", selection: $viewModel.selectedTag) {
+                            ForEach(tagOptions, id: \.key) { option in
+                                Text(option.val).tag(option.key)
+                            }
+                        }
+                        .onChange(of: viewModel.selectedTag) { newKey in
+                            if let selectedObj = tagOptions.first(where: { $0.key == newKey }) {
+                                viewModel.tagTitle = selectedObj.val
+                            }
+                        }
+                    }
+                    .promptFrameAndBackground(maxHeight: 50)
+                    
+                    HStack {
+                        Text("Date")
+                        Spacer()
+                        DatePicker("PickerView", selection: $viewModel.occuredOn,
+                                   displayedComponents: [.date, .hourAndMinute]).labelsHidden()
+                    }
+                    .promptFrameAndBackground(maxHeight: 50)
+                    .padding(.bottom, 25)
+                    
+                    TextField("Note", text: $viewModel.note)
+                        .promptFrameAndBackground(maxHeight: 50)
+                    
+                    Button(action: { viewModel.attachImage() }) {
+                        HStack {
+                            Image(systemName: "paperclip")
+                            Text("Attach an image")
+                        }
+                    }
+                    .promptFrameAndBackground(maxHeight: 50)
+                    .contentShape(Rectangle())
+                    .actionSheet(isPresented: $showAttachSheet) {
+                        ActionSheet(title: Text("Do you want to remove the attachment?"), buttons: [
+                            .default(Text("Remove")) { viewModel.removeImage() },
+                            .cancel()
+                        ])
                     }
                     
-                }.edgesIgnoringSafeArea(.top)
-                
-                VStack {
-                    Spacer()
-                    VStack {
-                        Button(action: { viewModel.saveTransaction(managedObjectContext: managedObjectContext) }, label: {
-                            HStack {
-                                Spacer()
-                                TextView(text: viewModel.getButtText(), type: .button).foregroundColor(.white)
-                                Spacer()
-                            }
+                    if let image = viewModel.imageAttached {
+                        Button(action: { showAttachSheet = true }, label: {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 250).frame(maxWidth: .infinity)
+                                .background(Color.secondary_color)
+                                .cornerRadius(4)
                         })
-                        .padding(.vertical, 12).background(Color.main_color).cornerRadius(8)
-                    }.padding(.bottom, 16).padding(.horizontal, 8)
+                    }
                 }
-                
+                Button(action: {
+                    viewModel.saveTransaction(managedObjectContext: managedObjectContext)
+                }) {
+                    Text(viewModel.getButtText())
+                }
+                .buttonStyle(CapsuleButtonStyle())
+                .padding()
             }
-            .navigationBarHidden(true)
+            .navigationTitle("💸 Add transaction")
         }
         .dismissKeyboardOnTap()
-        .navigationViewStyle(StackNavigationViewStyle())
-        .navigationBarHidden(true)
-        .navigationBarBackButtonHidden(true)
         .onReceive(viewModel.$closePresenter) { close in
             if close { self.presentationMode.wrappedValue.dismiss() }
         }
+        .alert(isPresented: $confirmDelete,
+               content: {
+            Alert(title: Text(APP_NAME), message: Text("Are you sure you want to delete this transaction?"),
+                  primaryButton: .destructive(Text("Delete")) {
+                viewModel.deleteTransaction(managedObjectContext: self.managedObjectContext)
+            }, secondaryButton: Alert.Button.cancel(Text("Cancel"), action: { confirmDelete = false })
+            )
+        })
+        .alert(isPresented: $viewModel.showAlert,
+               content: { Alert(title: Text(APP_NAME), message: Text(viewModel.alertMsg), dismissButton: .default(Text("OK"))) })
     }
 }
 

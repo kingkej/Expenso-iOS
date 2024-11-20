@@ -127,8 +127,8 @@ struct ExpenseFilterChartView: View {
     var body: some View {
         Group {
             if !expense.isEmpty {
-                ChartView(label: "Total \(isIncome ? "Income" : "Expense") - \(CURRENCY)\(getTotalValue())",
-                          entries: ChartModel.getTransaction(transactions: getChartModel()))
+                Text("Total \(isIncome ? "Income" : "Expense") - \(CURRENCY)\(getTotalValue())")
+                PieChartView(entries: ChartModel.getTransaction(transactions: getChartModel()))
             }
         }
     }

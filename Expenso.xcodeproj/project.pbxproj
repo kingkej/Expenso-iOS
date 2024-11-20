@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		736C720A25CFD89900720DEA /* empty-face.json in Resources */ = {isa = PBXBuildFile; fileRef = 736C720925CFD89900720DEA /* empty-face.json */; };
-		736C721B25CFE8E200720DEA /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736C721A25CFE8E200720DEA /* LottieView.swift */; };
 		738B1C1825C65DFE0067407B /* ExpensoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738B1C1725C65DFE0067407B /* ExpensoApp.swift */; };
 		738B1C1C25C65E060067407B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 738B1C1B25C65E060067407B /* Assets.xcassets */; };
 		738B1C1F25C65E060067407B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 738B1C1E25C65E060067407B /* Preview Assets.xcassets */; };
@@ -48,14 +47,29 @@
 		73E688DA25FF32790000462A /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73E688D925FF32790000462A /* ChartView.swift */; };
 		753CBDD325F36864005762B8 /* BiometricAuthUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753CBDD225F36864005762B8 /* BiometricAuthUtility.swift */; };
 		75C6B48025F37FD20079BCFC /* AuthenticationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C6B47F25F37FD20079BCFC /* AuthenticationViewModel.swift */; };
-		FF29C9FFAF86E0452686C5D0 /* Pods_Expenso.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B0E373FB89DD0864398FEE7 /* Pods_Expenso.framework */; };
+		AE27EE502CEDFADA00D64ABD /* BackgroundFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE27EE4F2CEDFACD00D64ABD /* BackgroundFrame.swift */; };
+		AE27EE522CEDFEB600D64ABD /* CapsuleButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE27EE512CEDFEB400D64ABD /* CapsuleButtonStyle.swift */; };
+		AEEF1D7D2CEDE2330059F63B /* Pow in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D7C2CEDE2330059F63B /* Pow */; };
+		AEEF1D802CEDE7CC0059F63B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D7F2CEDE7CC0059F63B /* Lottie */; };
+		AEEF1D882CEDECEF0059F63B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D872CEDECEF0059F63B /* Lottie */; };
+		AEEF1D8B2CEDEDD00059F63B /* ExtraLottie in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D8A2CEDEDD00059F63B /* ExtraLottie */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		AEEF1D9A2CEDF0730059F63B /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		1B0E373FB89DD0864398FEE7 /* Pods_Expenso.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Expenso.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		2C2D1600DAC62FA04EDCF170 /* Pods-Expenso.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Expenso.debug.xcconfig"; path = "Target Support Files/Pods-Expenso/Pods-Expenso.debug.xcconfig"; sourceTree = "<group>"; };
 		736C720925CFD89900720DEA /* empty-face.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "empty-face.json"; sourceTree = "<group>"; };
-		736C721A25CFE8E200720DEA /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		738B1C1425C65DFE0067407B /* Expenso.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Expenso.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		738B1C1725C65DFE0067407B /* ExpensoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpensoApp.swift; sourceTree = "<group>"; };
 		738B1C1B25C65E060067407B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -97,7 +111,8 @@
 		73E688D925FF32790000462A /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		753CBDD225F36864005762B8 /* BiometricAuthUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthUtility.swift; sourceTree = "<group>"; };
 		75C6B47F25F37FD20079BCFC /* AuthenticationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationViewModel.swift; sourceTree = "<group>"; };
-		B07E4D1AF457AB52E048A8B5 /* Pods-Expenso.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Expenso.release.xcconfig"; path = "Target Support Files/Pods-Expenso/Pods-Expenso.release.xcconfig"; sourceTree = "<group>"; };
+		AE27EE4F2CEDFACD00D64ABD /* BackgroundFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundFrame.swift; sourceTree = "<group>"; };
+		AE27EE512CEDFEB400D64ABD /* CapsuleButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleButtonStyle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,7 +120,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF29C9FFAF86E0452686C5D0 /* Pods_Expenso.framework in Frameworks */,
+				AEEF1D882CEDECEF0059F63B /* Lottie in Frameworks */,
+				AEEF1D8B2CEDEDD00059F63B /* ExtraLottie in Frameworks */,
+				AEEF1D7D2CEDE2330059F63B /* Pow in Frameworks */,
+				AEEF1D802CEDE7CC0059F63B /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -129,6 +147,8 @@
 		733763A927120DF300AA983A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AE27EE532CEDFEBD00D64ABD /* Styles */,
+				AE27EE4E2CEDFAC800D64ABD /* Modifiers */,
 				736C720825CFD82900720DEA /* Animations */,
 				738B1C5425C671680067407B /* Inter */,
 			);
@@ -157,9 +177,8 @@
 			isa = PBXGroup;
 			children = (
 				738B1C1625C65DFE0067407B /* Expenso */,
+				AEEF1D942CEDF0700059F63B /* Frameworks */,
 				738B1C1525C65DFE0067407B /* Products */,
-				8750B56D6AA40715F5AA8490 /* Pods */,
-				797DEE244C92A7FEC658698F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -222,7 +241,6 @@
 				738B1C4B25C663060067407B /* DismissKeyboard.swift */,
 				738B1C4E25C663180067407B /* DateExtension.swift */,
 				738B1C5125C6632F0067407B /* HelperMethods.swift */,
-				736C721A25CFE8E200720DEA /* LottieView.swift */,
 				73998C5425DA5578007D735B /* AttachmentHandler.swift */,
 				73E688D925FF32790000462A /* ChartView.swift */,
 			);
@@ -307,21 +325,27 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
-		797DEE244C92A7FEC658698F /* Frameworks */ = {
+		AE27EE4E2CEDFAC800D64ABD /* Modifiers */ = {
 			isa = PBXGroup;
 			children = (
-				1B0E373FB89DD0864398FEE7 /* Pods_Expenso.framework */,
+				AE27EE4F2CEDFACD00D64ABD /* BackgroundFrame.swift */,
 			);
-			name = Frameworks;
+			path = Modifiers;
 			sourceTree = "<group>";
 		};
-		8750B56D6AA40715F5AA8490 /* Pods */ = {
+		AE27EE532CEDFEBD00D64ABD /* Styles */ = {
 			isa = PBXGroup;
 			children = (
-				2C2D1600DAC62FA04EDCF170 /* Pods-Expenso.debug.xcconfig */,
-				B07E4D1AF457AB52E048A8B5 /* Pods-Expenso.release.xcconfig */,
+				AE27EE512CEDFEB400D64ABD /* CapsuleButtonStyle.swift */,
 			);
-			path = Pods;
+			path = Styles;
+			sourceTree = "<group>";
+		};
+		AEEF1D942CEDF0700059F63B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -331,11 +355,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 738B1C2825C65E060067407B /* Build configuration list for PBXNativeTarget "Expenso" */;
 			buildPhases = (
-				44BF09B51B528BEC272189A4 /* [CP] Check Pods Manifest.lock */,
 				738B1C1025C65DFE0067407B /* Sources */,
 				738B1C1125C65DFE0067407B /* Frameworks */,
 				738B1C1225C65DFE0067407B /* Resources */,
-				F8FE960F810D167038661B40 /* [CP] Embed Pods Frameworks */,
+				AEEF1D9A2CEDF0730059F63B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -369,6 +392,10 @@
 				Base,
 			);
 			mainGroup = 738B1C0B25C65DFE0067407B;
+			packageReferences = (
+				AEEF1D7B2CEDE2330059F63B /* XCRemoteSwiftPackageReference "Pow" */,
+				AEEF1D892CEDEDD00059F63B /* XCRemoteSwiftPackageReference "ExtraLottie" */,
+			);
 			productRefGroup = 738B1C1525C65DFE0067407B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -401,48 +428,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		44BF09B51B528BEC272189A4 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Expenso-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		F8FE960F810D167038661B40 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Expenso/Pods-Expenso-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Expenso/Pods-Expenso-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Expenso/Pods-Expenso-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		738B1C1025C65DFE0067407B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -462,6 +447,7 @@
 				738B1C4025C662890067407B /* InterFontModifier.swift in Sources */,
 				738B1C3C25C662580067407B /* Models.swift in Sources */,
 				753CBDD325F36864005762B8 /* BiometricAuthUtility.swift in Sources */,
+				AE27EE522CEDFEB600D64ABD /* CapsuleButtonStyle.swift in Sources */,
 				738B1C7325C674320067407B /* ExpenseSettingsView.swift in Sources */,
 				75C6B48025F37FD20079BCFC /* AuthenticationViewModel.swift in Sources */,
 				738B1C4C25C663060067407B /* DismissKeyboard.swift in Sources */,
@@ -471,9 +457,9 @@
 				738B1C6C25C673FC0067407B /* ExpenseCSVModel.swift in Sources */,
 				738B1C4925C662F20067407B /* DropdownButton.swift in Sources */,
 				738B1C7025C674120067407B /* ExpenseSettingsViewModel.swift in Sources */,
+				AE27EE502CEDFADA00D64ABD /* BackgroundFrame.swift in Sources */,
 				738B1C2F25C65EF70067407B /* Configs.swift in Sources */,
 				73E688DA25FF32790000462A /* ChartView.swift in Sources */,
-				736C721B25CFE8E200720DEA /* LottieView.swift in Sources */,
 				738B1C7725C675200067407B /* AddExpenseView.swift in Sources */,
 				738B1C8025C6763E0067407B /* ExpenseDetailedView.swift in Sources */,
 			);
@@ -600,7 +586,6 @@
 		};
 		738B1C2925C65E060067407B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2C2D1600DAC62FA04EDCF170 /* Pods-Expenso.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -609,7 +594,8 @@
 				DEVELOPMENT_TEAM = KTNPDHXXV3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Expenso/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				INFOPLIST_KEY_CFBundleDisplayName = xpense;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -624,7 +610,6 @@
 		};
 		738B1C2A25C65E060067407B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B07E4D1AF457AB52E048A8B5 /* Pods-Expenso.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -633,7 +618,8 @@
 				DEVELOPMENT_TEAM = KTNPDHXXV3;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Expenso/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				INFOPLIST_KEY_CFBundleDisplayName = xpense;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -668,6 +654,64 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AEEF1D7B2CEDE2330059F63B /* XCRemoteSwiftPackageReference "Pow" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/EmergeTools/Pow.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.5;
+			};
+		};
+		AEEF1D7E2CEDE7CC0059F63B /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.0;
+			};
+		};
+		AEEF1D862CEDECEF0059F63B /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.0;
+			};
+		};
+		AEEF1D892CEDEDD00059F63B /* XCRemoteSwiftPackageReference "ExtraLottie" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kingkej/ExtraLottie.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AEEF1D7C2CEDE2330059F63B /* Pow */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AEEF1D7B2CEDE2330059F63B /* XCRemoteSwiftPackageReference "Pow" */;
+			productName = Pow;
+		};
+		AEEF1D7F2CEDE7CC0059F63B /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AEEF1D7E2CEDE7CC0059F63B /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		AEEF1D872CEDECEF0059F63B /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AEEF1D862CEDECEF0059F63B /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		AEEF1D8A2CEDEDD00059F63B /* ExtraLottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AEEF1D892CEDEDD00059F63B /* XCRemoteSwiftPackageReference "ExtraLottie" */;
+			productName = ExtraLottie;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		738B1C2225C65E060067407B /* Expenso.xcdatamodeld */ = {

@@ -1,0 +1,33 @@
+{
+  "originHash" : "cdfa3ba3638f42cb45ed78dc5d3dd1e21a585fc5fcecdb6031a1ba953e8401aa",
+  "pins" : [
+    {
+      "identity" : "extralottie",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kingkej/ExtraLottie.git",
+      "state" : {
+        "revision" : "22067760fb1541917ddbcad7e10800ae70823792",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "lottie-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/airbnb/lottie-ios.git",
+      "state" : {
+        "revision" : "b4bd0604ded9574807f41b4004b57dd1226a30a4",
+        "version" : "3.5.0"
+      }
+    },
+    {
+      "identity" : "pow",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/EmergeTools/Pow.git",
+      "state" : {
+        "revision" : "a504eb6d144bcf49f4f33029a2795345cb39e6b4",
+        "version" : "1.0.5"
+      }
+    }
+  ],
+  "version" : 3
+}
