@@ -129,7 +129,16 @@ struct AddExpenseView: View {
                 .buttonStyle(CapsuleButtonStyle())
                 .padding()
             }
-            .navigationTitle("💸 Add transaction")
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarLeading) {
+                    Button {
+                        self.presentationMode.wrappedValue.dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                }
+            }
+            .navigationTitle("💸 \(viewModel.getButtText())")
         }
         .dismissKeyboardOnTap()
         .onReceive(viewModel.$closePresenter) { close in

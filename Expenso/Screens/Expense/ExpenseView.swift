@@ -9,49 +9,36 @@ import SwiftUI
 import ExtraLottie
 
 struct ExpenseView: View {
-    
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    // CoreData
     @Environment(\.managedObjectContext) var managedObjectContext
     @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
     
     @State private var filter: ExpenseCDFilterTime = .all
-    @State private var showFilterSheet = false
+    @State private var activeSheet: ActiveSheet? = nil
     
-    @State private var showOptionsSheet = false
     @State private var displayAbout = false
     @State private var displaySettings = false
     @State private var showAddExpenseSheet = false
     
+    enum ActiveSheet: Identifiable {
+        case filter
+        case options
+        
+        var id: Int {
+            switch self {
+            case .filter: return 1
+            case .options: return 2
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
-                Color.primary_color.edgesIgnoringSafeArea(.all)
-                
                 VStack {
-                    NavigationLink(destination: NavigationLazyView(ExpenseSettingsView()), isActive: $displaySettings, label: {})
-                    NavigationLink(destination: NavigationLazyView(AboutView()), isActive: $displayAbout, label: {})
-                    ToolbarModelView(title: "Dashboard", hasBackButt: false, button1Icon: IMAGE_OPTION_ICON, button2Icon: IMAGE_FILTER_ICON) { self.presentationMode.wrappedValue.dismiss() }
-                    button1Method: { self.showOptionsSheet = true }
-                    button2Method: { self.showFilterSheet = true }
-                        .actionSheet(isPresented: $showFilterSheet) {
-                            ActionSheet(title: Text("Select a filter"), buttons: [
-                                .default(Text("Overall")) { filter = .all },
-                                .default(Text("Last 7 days")) { filter = .week },
-                                .default(Text("Last 30 days")) { filter = .month },
-                                .cancel()
-                            ])
-                        }
                     ExpenseMainView(filter: filter)
-                        .actionSheet(isPresented: $showOptionsSheet) {
-                            ActionSheet(title: Text("Select an option"), buttons: [
-                                .default(Text("About")) { self.displayAbout = true },
-                                .default(Text("Settings")) { self.displaySettings = true },
-                                .cancel()
-                            ])
-                        }
                     Spacer()
-                }.edgesIgnoringSafeArea(.all)
+                }
                 
                 VStack {
                     Spacer()
@@ -65,16 +52,52 @@ struct ExpenseView: View {
                         .padding()
                         .background(Color.main_color).cornerRadius(35)
                     }
-                }.padding()
+                }
+                .padding()
             }
-            .navigationBarHidden(true)
+            .navigationTitle("⚡ Dashboard")
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button {
+                        activeSheet = .options
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    
+                    Button {
+                        activeSheet = .filter
+                    } label: {
+                        Image(systemName: "contextualmenu.and.cursorarrow")
+                    }
+                }
+            }
+            .sheet(isPresented: $showAddExpenseSheet) {
+                AddExpenseView(viewModel: AddExpenseViewModel())
+            }
+            .sheet(isPresented: $displayAbout) {
+                
+            }
+            .sheet(isPresented: $displaySettings) {
+                ExpenseSettingsView()
+            }
+            .actionSheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .filter:
+                    return ActionSheet(title: Text("Select a filter"), buttons: [
+                        .default(Text("Overall")) { filter = .all },
+                        .default(Text("Last 7 days")) { filter = .week },
+                        .default(Text("Last 30 days")) { filter = .month },
+                        .cancel()
+                    ])
+                case .options:
+                    return ActionSheet(title: Text("Select an option"), buttons: [
+                        .default(Text("About")) { self.displayAbout = true },
+                        .default(Text("Settings")) { self.displaySettings = true },
+                        .cancel()
+                    ])
+                }
+            }
         }
-        .sheet(isPresented: $showAddExpenseSheet) {
-            AddExpenseView(viewModel: AddExpenseViewModel())
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .navigationBarHidden(true)
-        .navigationBarBackButtonHidden(true)
     }
 }
 
@@ -84,6 +107,12 @@ struct ExpenseMainView: View {
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
     @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
+    
+    @State private var pickedExpense: ExpenseCD?
+    @State private var showDetailedExpenseSheet = false
+    
+    @State private var showingExprenseFilerSheet = false
+    @State private var showingIncomeFilerSheet = false
     
     init(filter: ExpenseCDFilterTime) {
         let sortDescriptor = NSSortDescriptor(key: "occuredOn", ascending: false)
@@ -111,9 +140,7 @@ struct ExpenseMainView: View {
     }
     
     var body: some View {
-        
         ScrollView(showsIndicators: false) {
-            
             if fetchRequest.wrappedValue.isEmpty {
                 ExtraLottieView(animationName: "empty-face")
                     .frame(
@@ -129,11 +156,18 @@ struct ExpenseMainView: View {
                 }.frame(maxWidth: .infinity).background(Color.secondary_color).cornerRadius(4)
                 
                 HStack(spacing: 8) {
-                    NavigationLink(destination: NavigationLazyView(ExpenseFilterView(isIncome: true)),
-                                   label: { ExpenseModelView(isIncome: true, filter: filter) })
-                    NavigationLink(destination: NavigationLazyView(ExpenseFilterView(isIncome: false)),
-                                   label: { ExpenseModelView(isIncome: false, filter: filter) })
-                }.frame(maxWidth: .infinity)
+                    Button(action: {
+                        showingIncomeFilerSheet = true
+                    }) {
+                        ExpenseModelView(isIncome: true, filter: filter)
+                    }
+                    Button(action: {
+                        showingExprenseFilerSheet = true
+                    }) {
+                        ExpenseModelView(isIncome: false, filter: filter)
+                    }
+                }
+                .frame(maxWidth: .infinity)
                 
                 Spacer().frame(height: 16)
                 
@@ -143,7 +177,21 @@ struct ExpenseMainView: View {
                 }.padding(4)
                 
                 ForEach(self.fetchRequest.wrappedValue) { expenseObj in
-                    NavigationLink(destination: ExpenseDetailedView(expenseObj: expenseObj), label: { ExpenseTransView(expenseObj: expenseObj) })
+                    Button(action: {
+                        pickedExpense = expenseObj
+                    })
+                    {
+                        ExpenseTransView(expenseObj: expenseObj)
+                    }
+                }
+                .sheet(item: $pickedExpense) { expenseObj in
+                    ExpenseDetailedView(expenseObj: expenseObj)
+                }
+                .sheet(isPresented: $showingExprenseFilerSheet) {
+                    ExpenseFilterView(isIncome: false)
+                }
+                .sheet(isPresented: $showingIncomeFilerSheet) {
+                    ExpenseFilterView(isIncome: true)
                 }
             }
             
@@ -213,18 +261,16 @@ struct ExpenseTransView: View {
     
     @ObservedObject var expenseObj: ExpenseCD
     @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
+    @State private var showingExprenseFilterSheet = false
     
     var body: some View {
         HStack {
-            
-            NavigationLink(destination: NavigationLazyView(ExpenseFilterView(categTag: expenseObj.tag)), label: {
-                //Image(getTransTagIcon(transTag: expenseObj.tag ?? ""))
-                //  .resizable().frame(width: 24, height: 24).padding(16)
-                //.background(Color.primary_color).cornerRadius(4)
+            Button(action: {
+                showingExprenseFilterSheet = true
+            }) {
                 Text(getTransTagEmoji(transTag: expenseObj.tag ?? ""))
                     .padding(16)
-            })
-            
+            }
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     TextView(text: expenseObj.title ?? "", type: .subtitle_1, lineLimit: 1).foregroundColor(Color.text_primary_color)
@@ -241,7 +287,13 @@ struct ExpenseTransView: View {
             
             Spacer()
             
-        }.padding(8).background(Color.secondary_color).cornerRadius(4)
+        }
+        .padding(8)
+        .background(Color.secondary_color)
+        .cornerRadius(4)
+        .sheet(isPresented: $showingExprenseFilterSheet) {
+            ExpenseFilterView(categTag: expenseObj.tag)
+        }
     }
 }
 

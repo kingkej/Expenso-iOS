@@ -58,9 +58,9 @@ class AddExpenseViewModel: ObservableObject {
     }
     
     func getButtText() -> String {
-        if selectedType == TRANS_TYPE_INCOME { return "\(expenseObj == nil ? "ADD" : "EDIT") INCOME" }
-        else if selectedType == TRANS_TYPE_EXPENSE { return "\(expenseObj == nil ? "ADD" : "EDIT") EXPENSE" }
-        else { return "\(expenseObj == nil ? "ADD" : "EDIT") TRANSACTION" }
+        if selectedType == TRANS_TYPE_INCOME { return "\(expenseObj == nil ? "Add" : "Edit") income" }
+        else if selectedType == TRANS_TYPE_EXPENSE { return "\(expenseObj == nil ? "Add" : "Edit") expense" }
+        else { return "\(expenseObj == nil ? "Add" : "Edit") transaction" }
     }
     
     func attachImage() { AttachmentHandler.shared.showAttachmentActionSheet() }

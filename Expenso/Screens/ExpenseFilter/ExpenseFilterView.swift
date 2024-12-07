@@ -15,7 +15,7 @@ struct ExpenseFilterView: View {
     @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
     
     @State var filter: ExpenseCDFilterTime = .all
-    @State var showingSheet = false
+    @State var showingActionSheet = false
     var isIncome: Bool?
     var categTag: String?
     
@@ -24,33 +24,12 @@ struct ExpenseFilterView: View {
         self.categTag = categTag
     }
     
-    func getToolbarTitle() -> String {
-        if let isIncome = isIncome {
-            return isIncome ? "Income" : "Expense"
-        } else if let tag = categTag { return getTransTagTitle(transTag: tag) }
-        return "Dashboard"
-    }
-    
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.primary_color.edgesIgnoringSafeArea(.all)
-                
                 VStack {
-                    ToolbarModelView(title: getToolbarTitle(), button1Icon: IMAGE_FILTER_ICON) { self.presentationMode.wrappedValue.dismiss() }
-                        button1Method: { self.showingSheet = true }
-                        .actionSheet(isPresented: $showingSheet) {
-                            ActionSheet(title: Text("Select a filter"), buttons: [
-                                    .default(Text("Overall")) { filter = .all },
-                                    .default(Text("Last 7 days")) { filter = .week },
-                                    .default(Text("Last 30 days")) { filter = .month },
-                                    .cancel()
-                            ])
-                        }
-                    
                     ScrollView(showsIndicators: false) {
                         if let isIncome = isIncome {
-                            ExpenseFilterChartView(isIncome: isIncome, filter: filter).frame(width: 350, height: 350)
+                            ExpenseFilterChartView(isIncome: isIncome, filter: filter).frame(maxWidth: 350, maxHeight: 350)
                             ExpenseFilterTransList(isIncome: isIncome, filter: filter)
                         }
                         if let tag = categTag {
@@ -60,19 +39,19 @@ struct ExpenseFilterView: View {
                             }.frame(maxWidth: .infinity)
                             ExpenseFilterTransList(filter: filter, tag: tag)
                         }
-                        Spacer().frame(height: 150)
                     }.padding(.horizontal, 8).padding(.top, 0)
-                    
-                    Spacer()
-                    
-                }.edgesIgnoringSafeArea(.all)
+                }
+                .navigationTitle("⚡ Aloki")
+                .actionSheet(isPresented: $showingActionSheet) {
+                    ActionSheet(title: Text("Select a filter"), buttons: [
+                            .default(Text("Overall")) { filter = .all },
+                            .default(Text("Last 7 days")) { filter = .week },
+                            .default(Text("Last 30 days")) { filter = .month },
+                            .cancel()
+                    ])
+                }
             }
-            .navigationBarHidden(true)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .navigationBarHidden(true)
-        .navigationBarBackButtonHidden(true)
-    }
 }
 
 struct ExpenseFilterChartView: View {

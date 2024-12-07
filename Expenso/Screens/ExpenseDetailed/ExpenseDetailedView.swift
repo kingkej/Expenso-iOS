@@ -21,73 +21,75 @@ struct ExpenseDetailedView: View {
     init(expenseObj: ExpenseCD) {
         viewModel = ExpenseDetailedViewModel(expenseObj: expenseObj)
     }
+    @State private var expenseToEdit: ExpenseCD?
     
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.primary_color.edgesIgnoringSafeArea(.all)
-                
-                VStack {
+            VStack {
+                ScrollView(showsIndicators: false) {
                     
-                    ToolbarModelView(title: "Details", button1Icon: IMAGE_DELETE_ICON, button2Icon: IMAGE_SHARE_ICON) { self.presentationMode.wrappedValue.dismiss() }
-                        button1Method: { self.confirmDelete = true }
-                        button2Method: { viewModel.shareNote() }
+                    VStack(spacing: 24) {
+                        ExpenseDetailedListView(title: "Title", description: viewModel.expenseObj.title ?? "")
+                        ExpenseDetailedListView(title: "Amount", description: "\(CURRENCY)\(viewModel.expenseObj.amount)")
+                        ExpenseDetailedListView(title: "Transaction type", description: viewModel.expenseObj.type == TRANS_TYPE_INCOME ? "Income" : "Expense" )
+                        ExpenseDetailedListView(title: "Tag", description: getTransTagTitle(transTag: viewModel.expenseObj.tag ?? ""))
+                        ExpenseDetailedListView(title: "When", description: getDateFormatter(date: viewModel.expenseObj.occuredOn, format: "EEEE, dd MMM hh:mm a"))
+                        if let note = viewModel.expenseObj.note, note != "" {
+                            ExpenseDetailedListView(title: "Note", description: note)
+                        }
+                        if let data = viewModel.expenseObj.imageAttached {
+                            VStack(spacing: 8) {
+                                HStack { TextView(text: "Attachment", type: .caption).foregroundColor(Color.init(hex: "828282")); Spacer() }
+                                Image(uiImage: UIImage(data: data)!)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: 250).frame(maxWidth: .infinity)
+                                    .background(Color.secondary_color)
+                                    .cornerRadius(4)
+                            }
+                        }
+                    }.padding(16)
                     
-                    ScrollView(showsIndicators: false) {
-                        
-                        VStack(spacing: 24) {
-                            ExpenseDetailedListView(title: "Title", description: viewModel.expenseObj.title ?? "")
-                            ExpenseDetailedListView(title: "Amount", description: "\(CURRENCY)\(viewModel.expenseObj.amount)")
-                            ExpenseDetailedListView(title: "Transaction type", description: viewModel.expenseObj.type == TRANS_TYPE_INCOME ? "Income" : "Expense" )
-                            ExpenseDetailedListView(title: "Tag", description: getTransTagTitle(transTag: viewModel.expenseObj.tag ?? ""))
-                            ExpenseDetailedListView(title: "When", description: getDateFormatter(date: viewModel.expenseObj.occuredOn, format: "EEEE, dd MMM hh:mm a"))
-                            if let note = viewModel.expenseObj.note, note != "" {
-                                ExpenseDetailedListView(title: "Note", description: note)
-                            }
-                            if let data = viewModel.expenseObj.imageAttached {
-                                VStack(spacing: 8) {
-                                    HStack { TextView(text: "Attachment", type: .caption).foregroundColor(Color.init(hex: "828282")); Spacer() }
-                                    Image(uiImage: UIImage(data: data)!)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(height: 250).frame(maxWidth: .infinity)
-                                        .background(Color.secondary_color)
-                                        .cornerRadius(4)
-                                }
-                            }
-                        }.padding(16)
-                        
-                        Spacer().frame(height: 24)
-                        Spacer()
-                    }
-                    .alert(isPresented: $confirmDelete,
-                                content: {
-                                    Alert(title: Text(APP_NAME), message: Text("Are you sure you want to delete this transaction?"),
-                                        primaryButton: .destructive(Text("Delete")) {
-                                            viewModel.deleteNote(managedObjectContext: managedObjectContext)
-                                        }, secondaryButton: Alert.Button.cancel(Text("Cancel"), action: { confirmDelete = false })
-                                    )
-                                })
-                }.edgesIgnoringSafeArea(.all)
-                
-                VStack {
+                    Spacer().frame(height: 24)
                     Spacer()
-                    HStack {
-                        Spacer()
-                        NavigationLink(destination: AddExpenseView(viewModel: AddExpenseViewModel(expenseObj: viewModel.expenseObj)), label: {
-                            Image("pencil_icon").resizable().frame(width: 28.0, height: 28.0)
-                            Text("Edit").modifier(InterFont(.semiBold, size: 18)).foregroundColor(.white)
-                        })
-                        .padding(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 20))
-                        .background(Color.main_color).cornerRadius(25)
-                    }.padding(24)
+                }
+                .alert(isPresented: $confirmDelete,
+                       content: {
+                    Alert(title: Text(APP_NAME), message: Text("Are you sure you want to delete this transaction?"),
+                          primaryButton: .destructive(Text("Delete")) {
+                        viewModel.deleteNote(managedObjectContext: managedObjectContext)
+                    }, secondaryButton: Alert.Button.cancel(Text("Cancel"), action: { confirmDelete = false })
+                    )
+                })
+            }
+            .navigationTitle("Details")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        presentationMode.wrappedValue.dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                }
+                
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button {
+                        expenseToEdit = viewModel.expenseObj
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
+                    
+                    Button {
+                        confirmDelete = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
                 }
             }
-            .navigationBarHidden(true)
+            .sheet(item: $expenseToEdit) { expense in
+                AddExpenseView(viewModel: AddExpenseViewModel(expenseObj: viewModel.expenseObj))
+            }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .navigationBarHidden(true)
-        .navigationBarBackButtonHidden(true)
     }
 }
 
