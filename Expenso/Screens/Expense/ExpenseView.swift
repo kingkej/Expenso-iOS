@@ -7,6 +7,7 @@
 
 import SwiftUI
 import ExtraLottie
+import FluidGradient
 
 struct ExpenseView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -47,10 +48,14 @@ struct ExpenseView: View {
                         Button(action: {
                             showAddExpenseSheet = true
                         }) {
-                            Image("plus_icon").resizable().frame(width: 32.0, height: 32.0)
+                            Image(systemName: "plus")
+                                .resizable()
+                                .foregroundColor(.black)
+                                .frame(width: 28.0, height: 28.0)
                         }
                         .padding()
-                        .background(Color.main_color).cornerRadius(35)
+                        .background(Color.defaultLightGradient)
+                        .cornerRadius(35)
                     }
                 }
                 .padding()
@@ -80,6 +85,11 @@ struct ExpenseView: View {
             .sheet(isPresented: $displaySettings) {
                 ExpenseSettingsView()
             }
+            .onChange(of: showAddExpenseSheet) { newValue in
+                if newValue == false {
+                    managedObjectContext.refreshAllObjects()
+                }
+            }
             .actionSheet(item: $activeSheet) { sheet in
                 switch sheet {
                 case .filter:
@@ -97,12 +107,12 @@ struct ExpenseView: View {
                     ])
                 }
             }
+            .ignoresSafeArea(.container, edges: .bottom)
         }
     }
 }
 
 struct ExpenseMainView: View {
-    
     var filter: ExpenseCDFilterTime
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
@@ -151,9 +161,18 @@ struct ExpenseMainView: View {
                 }.padding(.horizontal)
             } else {
                 VStack(spacing: 16) {
-                    TextView(text: "TOTAL BALANCE", type: .overline).foregroundColor(Color.init(hex: "828282")).padding(.top, 30)
-                    TextView(text: "\(CURRENCY)\(getTotalBalance())", type: .h5).foregroundColor(Color.text_primary_color).padding(.bottom, 30)
-                }.frame(maxWidth: .infinity).background(Color.secondary_color).cornerRadius(4)
+                    TextView(text: "TOTAL BALANCE", type: .overline)
+                        .foregroundStyle(.black)
+                        .padding(.top, 30)
+                    TextView(text: "\(CURRENCY)\(getTotalBalance())", type: .h5)
+                        .foregroundStyle(.black)
+                        .padding(.bottom, 30)
+                }.frame(maxWidth: .infinity)
+                    .background(FluidGradient(blobs: [.cyan.opacity(0.4), .purple.opacity(0.4)],
+                                                                      speed: 0.05,
+                                                                      blur: 0.75)
+                        .background(Color.defaultLightGradient))
+                    .cornerRadius(10)
                 
                 HStack(spacing: 8) {
                     Button(action: {
@@ -208,6 +227,10 @@ struct ExpenseModelView: View {
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
     @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
+    var gradientBlobs: [Color] {
+        if isIncome { return [.green.opacity(0.3), .mint.opacity(0.3)] }
+        else { return [.red.opacity(0.5), .orange.opacity(0.4)] }
+    }
     
     private func getTotalValue() -> String {
         var value = Double(0)
@@ -246,19 +269,26 @@ struct ExpenseModelView: View {
                 Image(isIncome ? "income_icon" : "expense_icon").resizable().frame(width: 40.0, height: 40.0).padding(12)
             }
             HStack{
-                TextView(text: isIncome ? "INCOME" : "EXPENSE", type: .overline).foregroundColor(Color.init(hex: "828282"))
+                TextView(text: isIncome ? "INCOME" : "EXPENSE", type: .overline)
+                    .foregroundStyle(.black)
                 Spacer()
-            }.padding(.horizontal, 12)
+            }
+            .padding(.horizontal, 12)
             HStack {
-                TextView(text: "\(CURRENCY)\(getTotalValue())", type: .h5, lineLimit: 1).foregroundColor(Color.text_primary_color)
+                TextView(text: "\(CURRENCY)\(getTotalValue())", type: .h5, lineLimit: 1)
+                    .foregroundStyle(.black)
                 Spacer()
-            }.padding(.horizontal, 12)
-        }.padding(.bottom, 12).background(Color.secondary_color).cornerRadius(4)
+            }
+            .padding(.horizontal, 12)
+        }
+        .padding(.bottom, 12)
+        .background(FluidGradient(blobs: gradientBlobs, speed: 0.05, blur: 0.75)
+            .background(Color.defaultLightGradient))
+        .cornerRadius(10)
     }
 }
 
 struct ExpenseTransView: View {
-    
     @ObservedObject var expenseObj: ExpenseCD
     @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
     @State private var showingExprenseFilterSheet = false
@@ -289,8 +319,10 @@ struct ExpenseTransView: View {
             
         }
         .padding(8)
-        .background(Color.secondary_color)
-        .cornerRadius(4)
+        .background(
+            .ultraThinMaterial // This applies a blur effect to the background
+        )
+        .cornerRadius(10)
         .sheet(isPresented: $showingExprenseFilterSheet) {
             ExpenseFilterView(categTag: expenseObj.tag)
         }

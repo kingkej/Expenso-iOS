@@ -121,6 +121,8 @@ struct AddExpenseView: View {
                         })
                     }
                 }
+                .dismissKeyboardOnTap()
+                
                 Button(action: {
                     viewModel.saveTransaction(managedObjectContext: managedObjectContext)
                 }) {
@@ -140,7 +142,6 @@ struct AddExpenseView: View {
             }
             .navigationTitle("💸 \(viewModel.getButtText())")
         }
-        .dismissKeyboardOnTap()
         .onReceive(viewModel.$closePresenter) { close in
             if close { self.presentationMode.wrappedValue.dismiss() }
         }

@@ -68,7 +68,6 @@ class AddExpenseViewModel: ObservableObject {
     func removeImage() { imageAttached = nil }
     
     func saveTransaction(managedObjectContext: NSManagedObjectContext) {
-        
         let expense: ExpenseCD
         let titleStr = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let amountStr = amount.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -19,6 +19,10 @@ extension Color {
     static let main_green = Color(UIColor(red: 111/255, green: 207/255, blue: 151/255, alpha: 1.0))
     static let main_red = Color(UIColor(red: 235/255, green: 87/255, blue: 87/255, alpha: 1.0))
     
+    static let defaultLightGradient = LinearGradient(gradient: Gradient(colors: [Color(red: 0.93, green: 0.99, blue: 1),
+                                                                                 Color(red: 1, green: 0.95, blue: 0.91),
+                                                                                 Color(red: 0.87, green: 0.85, blue: 1)]),startPoint: .leading, endPoint: .trailing)
+    
     init(hex: String, alpha: Double = 1) {
         var cString: String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         if (cString.hasPrefix("#")) { cString.remove(at: cString.startIndex) }

@@ -1,5 +1,5 @@
 {
-  "originHash" : "cdfa3ba3638f42cb45ed78dc5d3dd1e21a585fc5fcecdb6031a1ba953e8401aa",
+  "originHash" : "a09dcbc3d9c0d915bff833712f97ae947b03856cf366882f7339d8a939ddcbe7",
   "pins" : [
     {
       "identity" : "extralottie",
@@ -7,6 +7,15 @@
       "location" : "https://github.com/kingkej/ExtraLottie.git",
       "state" : {
         "revision" : "22067760fb1541917ddbcad7e10800ae70823792",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "fluidgradient",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Cindori/FluidGradient.git",
+      "state" : {
+        "revision" : "9ddda4cf23671ef0228e88681ec6210cb3e0d7f7",
         "version" : "1.0.0"
       }
     },

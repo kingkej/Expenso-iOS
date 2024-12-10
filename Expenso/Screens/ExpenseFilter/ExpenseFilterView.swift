@@ -114,11 +114,11 @@ struct ExpenseFilterChartView: View {
 }
 
 struct ExpenseFilterTransList: View {
-    
     var isIncome: Bool?
     var tag: String?
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
+    @State private var pickedExpense: ExpenseCD?
     
     init(isIncome: Bool? = nil, filter: ExpenseCDFilterTime, tag: String? = nil) {
         let sortDescriptor = NSSortDescriptor(key: "occuredOn", ascending: false)
@@ -147,7 +147,14 @@ struct ExpenseFilterTransList: View {
     
     var body: some View {
         ForEach(self.fetchRequest.wrappedValue) { expenseObj in
-            NavigationLink(destination: ExpenseDetailedView(expenseObj: expenseObj), label: { ExpenseTransView(expenseObj: expenseObj) })
+            Button(action: {
+                pickedExpense = expenseObj
+            }) {
+                ExpenseTransView(expenseObj: expenseObj)
+            }
+        }
+        .sheet(item: $pickedExpense) { expenseObj in
+            ExpenseDetailedView(expenseObj: expenseObj)
         }
     }
 }
