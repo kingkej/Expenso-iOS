@@ -22,6 +22,7 @@ struct ExpenseDetailedView: View {
         viewModel = ExpenseDetailedViewModel(expenseObj: expenseObj)
     }
     @State private var expenseToEdit: ExpenseCD?
+    let haptics = HapticsHelper.shared
     
     var body: some View {
         NavigationView {
@@ -66,6 +67,7 @@ struct ExpenseDetailedView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
+                        haptics.mediumButtonTap()
                         presentationMode.wrappedValue.dismiss()
                     } label: {
                         Image(systemName: "xmark")
@@ -74,12 +76,14 @@ struct ExpenseDetailedView: View {
                 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
+                        haptics.mediumButtonTap()
                         expenseToEdit = viewModel.expenseObj
                     } label: {
                         Image(systemName: "pencil")
                     }
                     
                     Button {
+                        haptics.mediumButtonTap()
                         confirmDelete = true
                     } label: {
                         Image(systemName: "trash")

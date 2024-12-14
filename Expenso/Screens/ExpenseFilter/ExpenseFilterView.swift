@@ -14,7 +14,7 @@ struct ExpenseFilterView: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
     
-    @State var filter: ExpenseCDFilterTime = .all
+    @State var filter: ExpenseCDFilterTime = .month
     @State var showingActionSheet = false
     var isIncome: Bool?
     var categTag: String?

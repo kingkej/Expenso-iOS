@@ -14,12 +14,14 @@ struct ExpenseView: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
     
-    @State private var filter: ExpenseCDFilterTime = .all
+    @State private var filter: ExpenseCDFilterTime = .month
     @State private var activeSheet: ActiveSheet? = nil
     
     @State private var displayAbout = false
     @State private var displaySettings = false
     @State private var showAddExpenseSheet = false
+    
+    let haptics = HapticsHelper.shared
     
     enum ActiveSheet: Identifiable {
         case filter
@@ -46,6 +48,7 @@ struct ExpenseView: View {
                     HStack {
                         Spacer()
                         Button(action: {
+                            haptics.hardButtonTap()
                             showAddExpenseSheet = true
                         }) {
                             Image(systemName: "plus")
@@ -64,12 +67,14 @@ struct ExpenseView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
+                        haptics.lightButtonTap()
                         activeSheet = .options
                     } label: {
                         Image(systemName: "gearshape")
                     }
                     
                     Button {
+                        haptics.lightButtonTap()
                         activeSheet = .filter
                     } label: {
                         Image(systemName: "contextualmenu.and.cursorarrow")
@@ -124,6 +129,8 @@ struct ExpenseMainView: View {
     @State private var showingExprenseFilerSheet = false
     @State private var showingIncomeFilerSheet = false
     
+    let haptics = HapticsHelper.shared
+    
     init(filter: ExpenseCDFilterTime) {
         let sortDescriptor = NSSortDescriptor(key: "occuredOn", ascending: false)
         self.filter = filter
@@ -176,11 +183,13 @@ struct ExpenseMainView: View {
                 
                 HStack(spacing: 8) {
                     Button(action: {
+                        haptics.lightButtonTap()
                         showingIncomeFilerSheet = true
                     }) {
                         ExpenseModelView(isIncome: true, filter: filter)
                     }
                     Button(action: {
+                        haptics.lightButtonTap()
                         showingExprenseFilerSheet = true
                     }) {
                         ExpenseModelView(isIncome: false, filter: filter)
@@ -197,6 +206,7 @@ struct ExpenseMainView: View {
                 
                 ForEach(self.fetchRequest.wrappedValue) { expenseObj in
                     Button(action: {
+                        haptics.hardButtonTap()
                         pickedExpense = expenseObj
                     })
                     {

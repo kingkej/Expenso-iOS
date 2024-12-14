@@ -50,6 +50,7 @@
 		AE27EE502CEDFADA00D64ABD /* BackgroundFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE27EE4F2CEDFACD00D64ABD /* BackgroundFrame.swift */; };
 		AE27EE522CEDFEB600D64ABD /* CapsuleButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE27EE512CEDFEB400D64ABD /* CapsuleButtonStyle.swift */; };
 		AE4EB3D42D08917700F5A1EF /* FluidGradient in Frameworks */ = {isa = PBXBuildFile; productRef = AE4EB3D32D08917700F5A1EF /* FluidGradient */; };
+		AE4EB3D72D0A8E2C00F5A1EF /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4EB3D62D0A8E2400F5A1EF /* HapticService.swift */; };
 		AEEF1D7D2CEDE2330059F63B /* Pow in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D7C2CEDE2330059F63B /* Pow */; };
 		AEEF1D802CEDE7CC0059F63B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D7F2CEDE7CC0059F63B /* Lottie */; };
 		AEEF1D882CEDECEF0059F63B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D872CEDECEF0059F63B /* Lottie */; };
@@ -114,6 +115,7 @@
 		75C6B47F25F37FD20079BCFC /* AuthenticationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationViewModel.swift; sourceTree = "<group>"; };
 		AE27EE4F2CEDFACD00D64ABD /* BackgroundFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundFrame.swift; sourceTree = "<group>"; };
 		AE27EE512CEDFEB400D64ABD /* CapsuleButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleButtonStyle.swift; sourceTree = "<group>"; };
+		AE4EB3D62D0A8E2400F5A1EF /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,6 +162,7 @@
 		733763AA27120E0500AA983A /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				AE4EB3D52D0A8E1E00F5A1EF /* Services */,
 				75C6B48225F37FF60079BCFC /* Utilities */,
 				738B1C3A25C662060067407B /* Helpers */,
 				738B1C3125C660070067407B /* CoreData */,
@@ -343,6 +346,14 @@
 			path = Styles;
 			sourceTree = "<group>";
 		};
+		AE4EB3D52D0A8E1E00F5A1EF /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AE4EB3D62D0A8E2400F5A1EF /* HapticService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		AEEF1D942CEDF0700059F63B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -438,6 +449,7 @@
 			files = (
 				738B1C3825C661750067407B /* ExpenseView.swift in Sources */,
 				73998C5525DA5578007D735B /* AttachmentHandler.swift in Sources */,
+				AE4EB3D72D0A8E2C00F5A1EF /* HapticService.swift in Sources */,
 				738B1C8425C6764B0067407B /* ExpenseDetailedViewModel.swift in Sources */,
 				738B1C9025C680D20067407B /* AboutView.swift in Sources */,
 				738B1C4F25C663180067407B /* DateExtension.swift in Sources */,

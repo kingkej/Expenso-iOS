@@ -35,6 +35,7 @@ struct AddExpenseView: View {
         DropdownOption(key: TRANS_TAG_UTILITIES, val: "Utilities"),
         DropdownOption(key: TRANS_TAG_CAR, val: "Car")
     ]
+    let haptics = HapticsHelper.shared
     
     var body: some View {
         NavigationView {
@@ -124,6 +125,7 @@ struct AddExpenseView: View {
                 .dismissKeyboardOnTap()
                 
                 Button(action: {
+                    haptics.hardButtonTap()
                     viewModel.saveTransaction(managedObjectContext: managedObjectContext)
                 }) {
                     Text(viewModel.getButtText())
@@ -134,6 +136,7 @@ struct AddExpenseView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     Button {
+                        haptics.mediumButtonTap()
                         self.presentationMode.wrappedValue.dismiss()
                     } label: {
                         Image(systemName: "xmark")
