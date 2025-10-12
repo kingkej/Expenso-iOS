@@ -89,6 +89,7 @@ func getTransTagTitle(transTag: String) -> String {
         case TRANS_TAG_ENTERTAINMENT: return "Entertainment"
         case TRANS_TAG_OTHERS: return "Others"
         case TRANS_TAG_UTILITIES: return "Utilities"
+        case TRANS_TAG_CAR: return "Car"
         default: return "Unknown"
     }
 }
