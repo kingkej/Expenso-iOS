@@ -80,7 +80,7 @@ class ExpenseSettingsViewModel: ObservableObject {
                     csvModel.amount = "\(currency)\(i.amount)"
                     csvModel.transactionType = "\(i.type == TRANS_TYPE_INCOME ? "INCOME" : "EXPENSE")"
                     csvModel.tag = getTransTagTitle(transTag: i.tag ?? "")
-                    csvModel.occuredOn = "\(getDateFormatter(date: i.occuredOn, format: "yyyy-mm-dd hh:mm a"))"
+                    csvModel.occuredOn = "\(getDateFormatter(date: i.occuredOn, format: "yyyy-MM-dd hh:mm a"))"
                     csvModel.note = i.note ?? ""
                     csvModelArr.append(csvModel)
                 }
@@ -91,7 +91,7 @@ class ExpenseSettingsViewModel: ObservableObject {
     
     func generateCSV() {
         let fileName = "Expense.csv"
-        let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         var csvText = "\u{FEFF}Title,Amount,Type,Tag,Occured On,Note\n" // Add BOM at the start
 
         for csvModel in csvModelArr {
@@ -100,15 +100,23 @@ class ExpenseSettingsViewModel: ObservableObject {
         }
 
         do {
-            try csvText.write(to: path!, atomically: true, encoding: .utf8)
-            let av = UIActivityViewController(activityItems: [path!], applicationActivities: nil)
-            UIApplication.shared.windows.first?.rootViewController?.present(av, animated: true, completion: nil)
+            try csvText.write(to: path, atomically: true, encoding: .utf8)
+            let av = UIActivityViewController(activityItems: [path], applicationActivities: nil)
+            DispatchQueue.main.async {
+                guard let presenter = topMostViewController() else { return }
+                if let popover = av.popoverPresentationController {
+                    popover.sourceView = presenter.view
+                    popover.sourceRect = CGRect(x: presenter.view.bounds.midX, y: presenter.view.bounds.midY, width: 0, height: 0)
+                    popover.permittedArrowDirections = []
+                }
+                presenter.present(av, animated: true, completion: nil)
+            }
         } catch {
             alertMsg = "\(error)"
             showAlert = true
         }
 
-        print(path ?? "File not found")
+        print(path)
     }
     
     deinit {

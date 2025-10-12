@@ -39,6 +39,14 @@ class ExpenseDetailedViewModel: ObservableObject {
         \(SHARED_FROM_EXPENSO)
         """
         let av = UIActivityViewController(activityItems: [shareStr], applicationActivities: nil)
-        UIApplication.shared.windows.first?.rootViewController?.present(av, animated: true, completion: nil)
+        DispatchQueue.main.async {
+            guard let presenter = topMostViewController() else { return }
+            if let popover = av.popoverPresentationController {
+                popover.sourceView = presenter.view
+                popover.sourceRect = CGRect(x: presenter.view.bounds.midX, y: presenter.view.bounds.midY, width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
+            presenter.present(av, animated: true, completion: nil)
+        }
     }
 }
