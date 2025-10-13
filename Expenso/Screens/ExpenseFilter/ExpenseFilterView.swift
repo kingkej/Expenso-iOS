@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct ExpenseFilterView: View {
     
@@ -15,13 +16,15 @@ struct ExpenseFilterView: View {
     @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
     
     @State var filter: ExpenseCDFilterTime = .month
-    @State var showingActionSheet = false
+    
     var isIncome: Bool?
     var categTag: String?
+    let haptics = HapticsHelper.shared
     
-    init(isIncome: Bool? = nil, categTag: String? = nil) {
+    init(isIncome: Bool? = nil, categTag: String? = nil, defaultFilter: ExpenseCDFilterTime = .month) {
         self.isIncome = isIncome
         self.categTag = categTag
+        _filter = State(initialValue: defaultFilter)
     }
     
     var body: some View {
@@ -42,13 +45,16 @@ struct ExpenseFilterView: View {
                     }.padding(.horizontal, 8).padding(.top, 0)
                 }
                 .navigationTitle("⚡ Aloki")
-                .actionSheet(isPresented: $showingActionSheet) {
-                    ActionSheet(title: Text("Select a filter"), buttons: [
-                            .default(Text("Overall")) { filter = .all },
-                            .default(Text("Last 7 days")) { filter = .week },
-                            .default(Text("Last 30 days")) { filter = .month },
-                            .cancel()
-                    ])
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button("Overall") { haptics.lightButtonTap(); filter = .all }
+                            Button("Last 7 days") { haptics.lightButtonTap(); filter = .week }
+                            Button("Last 30 days") { haptics.lightButtonTap(); filter = .month }
+                        } label: {
+                            Image(systemName: "contextualmenu.and.cursorarrow")
+                        }
+                    }
                 }
             }
         }
@@ -62,10 +68,10 @@ struct ExpenseFilterChartView: View {
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
     @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
     
-    private func getTotalValue() -> String {
+    private func getTotalValue() -> Double {
         var value = Double(0)
         for i in expense { value += i.amount }
-        return "\(String(format: "%.2f", value))"
+        return value
     }
     
     private func getChartModel() -> [ChartModel] {
@@ -106,7 +112,7 @@ struct ExpenseFilterChartView: View {
     var body: some View {
         Group {
             if !expense.isEmpty {
-                Text("Total \(isIncome ? "Income" : "Expense") - \(CURRENCY)\(getTotalValue())")
+                Text("Total \(isIncome ? "Income" : "Expense") - \(CURRENCY)\(formatAmount(getTotalValue()))")
                 PieChartView(entries: ChartModel.getTransaction(transactions: getChartModel()))
             }
         }
@@ -116,19 +122,24 @@ struct ExpenseFilterChartView: View {
 struct ExpenseFilterTransList: View {
     var isIncome: Bool?
     var tag: String?
+    var currentFilter: ExpenseCDFilterTime
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
     @State private var pickedExpense: ExpenseCD?
     
     init(isIncome: Bool? = nil, filter: ExpenseCDFilterTime, tag: String? = nil) {
+        self.currentFilter = filter
         let sortDescriptor = NSSortDescriptor(key: "occuredOn", ascending: false)
+        let request: NSFetchRequest<ExpenseCD> = ExpenseCD.fetchRequest() as! NSFetchRequest<ExpenseCD>
+        request.sortDescriptors = [sortDescriptor]
+        request.fetchBatchSize = 50
         if filter == .all {
             let predicate: NSPredicate!
             if let isIncome = isIncome {
                 predicate = NSPredicate(format: "type == %@", (isIncome ? TRANS_TYPE_INCOME : TRANS_TYPE_EXPENSE))
             } else if let tag = tag { predicate = NSPredicate(format: "tag == %@", tag) }
             else { predicate = NSPredicate(format: "occuredOn <= %@", NSDate()) }
-            fetchRequest = FetchRequest<ExpenseCD>(entity: ExpenseCD.entity(), sortDescriptors: [sortDescriptor], predicate: predicate)
+            request.predicate = predicate
         } else {
             var startDate: NSDate!
             let endDate: NSDate = NSDate()
@@ -141,16 +152,19 @@ struct ExpenseFilterTransList: View {
             } else if let tag = tag {
                 predicate = NSPredicate(format: "occuredOn >= %@ AND occuredOn <= %@ AND tag == %@", startDate, endDate, tag)
             } else { predicate = NSPredicate(format: "occuredOn >= %@ AND occuredOn <= %@", startDate, endDate) }
-            fetchRequest = FetchRequest<ExpenseCD>(entity: ExpenseCD.entity(), sortDescriptors: [sortDescriptor], predicate: predicate)
+            request.predicate = predicate
         }
+        fetchRequest = FetchRequest<ExpenseCD>(fetchRequest: request)
     }
     
     var body: some View {
-        ForEach(self.fetchRequest.wrappedValue) { expenseObj in
-            Button(action: {
-                pickedExpense = expenseObj
-            }) {
-                ExpenseTransView(expenseObj: expenseObj)
+        LazyVStack(spacing: 8) {
+            ForEach(self.fetchRequest.wrappedValue) { expenseObj in
+                Button(action: {
+                    pickedExpense = expenseObj
+                }) {
+                    ExpenseTransView(expenseObj: expenseObj, currentFilter: currentFilter)
+                }
             }
         }
         .sheet(item: $pickedExpense) { expenseObj in

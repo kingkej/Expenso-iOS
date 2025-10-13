@@ -8,6 +8,7 @@
 import SwiftUI
 import ExtraLottie
 import FluidGradient
+import CoreData
 
 struct ExpenseView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -15,7 +16,7 @@ struct ExpenseView: View {
     @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
     
     @State private var filter: ExpenseCDFilterTime = .month
-    @State private var activeSheet: ActiveSheet? = nil
+    
     
     @State private var displayAbout = false
     @State private var displaySettings = false
@@ -23,17 +24,7 @@ struct ExpenseView: View {
     
     let haptics = HapticsHelper.shared
     
-    enum ActiveSheet: Identifiable {
-        case filter
-        case options
-        
-        var id: Int {
-            switch self {
-            case .filter: return 1
-            case .options: return 2
-            }
-        }
-    }
+    // Using anchored Menus for toolbar interactions
     
     var body: some View {
         NavigationView {
@@ -66,16 +57,16 @@ struct ExpenseView: View {
             .navigationTitle("⚡ Dashboard")
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button {
-                        haptics.lightButtonTap()
-                        activeSheet = .options
+                    Menu {
+                        Button("About") { haptics.lightButtonTap(); self.displayAbout = true }
+                        Button("Settings") { haptics.lightButtonTap(); self.displaySettings = true }
                     } label: {
                         Image(systemName: "gearshape")
                     }
-                    
-                    Button {
-                        haptics.lightButtonTap()
-                        activeSheet = .filter
+                    Menu {
+                        Button("Overall") { haptics.lightButtonTap(); filter = .all }
+                        Button("Last 7 days") { haptics.lightButtonTap(); filter = .week }
+                        Button("Last 30 days") { haptics.lightButtonTap(); filter = .month }
                     } label: {
                         Image(systemName: "contextualmenu.and.cursorarrow")
                     }
@@ -95,23 +86,7 @@ struct ExpenseView: View {
                     managedObjectContext.refreshAllObjects()
                 }
             }
-            .actionSheet(item: $activeSheet) { sheet in
-                switch sheet {
-                case .filter:
-                    return ActionSheet(title: Text("Select a filter"), buttons: [
-                        .default(Text("Overall")) { filter = .all },
-                        .default(Text("Last 7 days")) { filter = .week },
-                        .default(Text("Last 30 days")) { filter = .month },
-                        .cancel()
-                    ])
-                case .options:
-                    return ActionSheet(title: Text("Select an option"), buttons: [
-                        .default(Text("About")) { self.displayAbout = true },
-                        .default(Text("Settings")) { self.displaySettings = true },
-                        .cancel()
-                    ])
-                }
-            }
+            
             .ignoresSafeArea(.container, edges: .bottom)
         }
     }
@@ -134,8 +109,11 @@ struct ExpenseMainView: View {
     init(filter: ExpenseCDFilterTime) {
         let sortDescriptor = NSSortDescriptor(key: "occuredOn", ascending: false)
         self.filter = filter
+        let request: NSFetchRequest<ExpenseCD> = ExpenseCD.fetchRequest() as! NSFetchRequest<ExpenseCD>
+        request.sortDescriptors = [sortDescriptor]
+        request.fetchBatchSize = 50
         if filter == .all {
-            fetchRequest = FetchRequest<ExpenseCD>(entity: ExpenseCD.entity(), sortDescriptors: [sortDescriptor])
+            // No predicate for overall filter
         } else {
             var startDate: NSDate!
             let endDate: NSDate = NSDate()
@@ -143,17 +121,18 @@ struct ExpenseMainView: View {
             else if filter == .month { startDate = Date().getLast30Day()! as NSDate }
             else { startDate = Date().getLast6Month()! as NSDate }
             let predicate = NSPredicate(format: "occuredOn >= %@ AND occuredOn <= %@", startDate, endDate)
-            fetchRequest = FetchRequest<ExpenseCD>(entity: ExpenseCD.entity(), sortDescriptors: [sortDescriptor], predicate: predicate)
+            request.predicate = predicate
         }
+        fetchRequest = FetchRequest<ExpenseCD>(fetchRequest: request)
     }
     
-    private func getTotalBalance() -> String {
+    private func getTotalBalance() -> Double {
         var value = Double(0)
         for i in expense {
             if i.type == TRANS_TYPE_INCOME { value += i.amount }
             else if i.type == TRANS_TYPE_EXPENSE { value -= i.amount }
         }
-        return "\(String(format: "%.2f", value))"
+        return value
     }
     
     var body: some View {
@@ -171,7 +150,7 @@ struct ExpenseMainView: View {
                     TextView(text: "TOTAL BALANCE", type: .overline)
                         .foregroundStyle(.black)
                         .padding(.top, 30)
-                    TextView(text: "\(CURRENCY)\(getTotalBalance())", type: .h5)
+                    TextView(text: "\(CURRENCY)\(formatAmount(getTotalBalance()))", type: .h5)
                         .foregroundStyle(.black)
                         .padding(.bottom, 30)
                 }.frame(maxWidth: .infinity)
@@ -204,23 +183,25 @@ struct ExpenseMainView: View {
                     Spacer()
                 }.padding(4)
                 
-                ForEach(self.fetchRequest.wrappedValue) { expenseObj in
-                    Button(action: {
-                        haptics.hardButtonTap()
-                        pickedExpense = expenseObj
-                    })
-                    {
-                        ExpenseTransView(expenseObj: expenseObj)
+                LazyVStack(spacing: 8) {
+                    ForEach(self.fetchRequest.wrappedValue) { expenseObj in
+                        Button(action: {
+                            haptics.hardButtonTap()
+                            pickedExpense = expenseObj
+                        })
+                        {
+                            ExpenseTransView(expenseObj: expenseObj, currentFilter: filter)
+                        }
                     }
                 }
                 .sheet(item: $pickedExpense) { expenseObj in
                     ExpenseDetailedView(expenseObj: expenseObj)
                 }
                 .sheet(isPresented: $showingExprenseFilerSheet) {
-                    ExpenseFilterView(isIncome: false)
+                    ExpenseFilterView(isIncome: false, defaultFilter: filter)
                 }
                 .sheet(isPresented: $showingIncomeFilerSheet) {
-                    ExpenseFilterView(isIncome: true)
+                    ExpenseFilterView(isIncome: true, defaultFilter: filter)
                 }
             }
             
@@ -242,10 +223,10 @@ struct ExpenseModelView: View {
         else { return [.red.opacity(0.5), .orange.opacity(0.4)] }
     }
     
-    private func getTotalValue() -> String {
+    private func getTotalValue() -> Double {
         var value = Double(0)
         for i in expense { value += i.amount }
-        return "\(String(format: "%.2f", value))"
+        return value
     }
     
     init(isIncome: Bool, filter: ExpenseCDFilterTime, categTag: String? = nil) {
@@ -285,7 +266,7 @@ struct ExpenseModelView: View {
             }
             .padding(.horizontal, 12)
             HStack {
-                TextView(text: "\(CURRENCY)\(getTotalValue())", type: .h5, lineLimit: 1)
+                TextView(text: "\(CURRENCY)\(formatAmount(getTotalValue()))", type: .h5, lineLimit: 1)
                     .foregroundStyle(.black)
                 Spacer()
             }
@@ -300,6 +281,7 @@ struct ExpenseModelView: View {
 
 struct ExpenseTransView: View {
     @ObservedObject var expenseObj: ExpenseCD
+    var currentFilter: ExpenseCDFilterTime
     @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
     @State private var showingExprenseFilterSheet = false
     
@@ -334,7 +316,7 @@ struct ExpenseTransView: View {
         )
         .cornerRadius(10)
         .sheet(isPresented: $showingExprenseFilterSheet) {
-            ExpenseFilterView(categTag: expenseObj.tag)
+            ExpenseFilterView(categTag: expenseObj.tag, defaultFilter: currentFilter)
         }
     }
 }

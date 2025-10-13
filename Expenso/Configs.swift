@@ -42,6 +42,7 @@ let TRANS_TAG_ENTERTAINMENT = "entertainment"
 let TRANS_TAG_OTHERS = "others"
 let TRANS_TAG_UTILITIES = "utilities"
 let TRANS_TAG_CAR = "car"
+let TRANS_TAG_TRAVEL = "travel"
 
 func getTransTagIcon(transTag: String) -> String {
     switch transTag {
@@ -56,6 +57,7 @@ func getTransTagIcon(transTag: String) -> String {
         case TRANS_TAG_OTHERS: return "trans_type_others"
         case TRANS_TAG_UTILITIES: return "trans_type_utilities"
         case TRANS_TAG_CAR: return "trans_type_car"
+        case TRANS_TAG_TRAVEL: return "trans_type_transport" // fallback to transport icon if specific travel icon not present
         default: return "trans_type_others"
     }
 }
@@ -73,6 +75,7 @@ func getTransTagEmoji(transTag: String) -> String {
         case TRANS_TAG_OTHERS: return "🔍"
         case TRANS_TAG_UTILITIES: return "💡"
         case TRANS_TAG_CAR: return "⚡"
+        case TRANS_TAG_TRAVEL: return "✈️"
         default: return "🔍"
     }
 }
@@ -89,6 +92,8 @@ func getTransTagTitle(transTag: String) -> String {
         case TRANS_TAG_ENTERTAINMENT: return "Entertainment"
         case TRANS_TAG_OTHERS: return "Others"
         case TRANS_TAG_UTILITIES: return "Utilities"
+        case TRANS_TAG_CAR: return "Car"
+        case TRANS_TAG_TRAVEL: return "Travel"
         default: return "Unknown"
     }
 }
