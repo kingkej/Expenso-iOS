@@ -16,10 +16,10 @@ struct ExpenseFilterView: View {
     @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
     
     @State var filter: ExpenseCDFilterTime = .month
-    @State var showingActionSheet = false
-    @State private var showFilterDialog = false
+    
     var isIncome: Bool?
     var categTag: String?
+    let haptics = HapticsHelper.shared
     
     init(isIncome: Bool? = nil, categTag: String? = nil, defaultFilter: ExpenseCDFilterTime = .month) {
         self.isIncome = isIncome
@@ -45,11 +45,16 @@ struct ExpenseFilterView: View {
                     }.padding(.horizontal, 8).padding(.top, 0)
                 }
                 .navigationTitle("⚡ Aloki")
-                .confirmationDialog("Select a filter", isPresented: $showFilterDialog, titleVisibility: .visible) {
-                    Button("Overall") { filter = .all }
-                    Button("Last 7 days") { filter = .week }
-                    Button("Last 30 days") { filter = .month }
-                    Button("Cancel", role: .cancel) {}
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button("Overall") { haptics.lightButtonTap(); filter = .all }
+                            Button("Last 7 days") { haptics.lightButtonTap(); filter = .week }
+                            Button("Last 30 days") { haptics.lightButtonTap(); filter = .month }
+                        } label: {
+                            Image(systemName: "contextualmenu.and.cursorarrow")
+                        }
+                    }
                 }
             }
         }
