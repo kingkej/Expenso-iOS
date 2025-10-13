@@ -36,6 +36,7 @@ extension ExpenseCD {
     static func getAllExpenseData(sortBy: ExpenseCDSort = .occuredOn, ascending: Bool = true, filterTime: ExpenseCDFilterTime = .all) -> NSFetchRequest<ExpenseCD> {
         let request: NSFetchRequest<ExpenseCD> = ExpenseCD.fetchRequest() as! NSFetchRequest<ExpenseCD>
         let sortDescriptor = NSSortDescriptor(key: sortBy.rawValue, ascending: ascending)
+        request.fetchBatchSize = 50
         if filterTime == .week {
             let startDate: NSDate = Date().getLast7Day()! as NSDate
             let endDate: NSDate = NSDate()

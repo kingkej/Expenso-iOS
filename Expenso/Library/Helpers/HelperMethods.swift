@@ -36,3 +36,13 @@ public func topMostViewController(base: UIViewController? = {
     }
     return base
 }
+
+public func formatAmount(_ value: Double, fractionDigits: Int = 2) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    formatter.usesGroupingSeparator = true
+    formatter.groupingSeparator = " "
+    formatter.minimumFractionDigits = 0
+    formatter.maximumFractionDigits = fractionDigits
+    return formatter.string(from: NSNumber(value: value)) ?? String(format: "%g", value)
+}

@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct AboutView: View {
-    
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     
     var body: some View {
