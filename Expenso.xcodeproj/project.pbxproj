@@ -684,7 +684,7 @@
 			repositoryURL = "https://github.com/EmergeTools/Pow.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.5;
+				minimumVersion = 1.0.6;
 			};
 		};
 		AEEF1D7E2CEDE7CC0059F63B /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
