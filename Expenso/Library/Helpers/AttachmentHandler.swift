@@ -17,7 +17,7 @@ class AttachmentHandler: NSObject {
     fileprivate var currentVC: UIViewController!
     
     private override init() {
-        currentVC = UIApplication.shared.windows.first!.rootViewController
+        super.init()
     }
     
     // MARK: - Internal Properties
@@ -40,6 +40,8 @@ class AttachmentHandler: NSObject {
     // MARK: - showAttachmentActionSheet
     // This function is used to show the attachment sheet for camera, photo.
     func showAttachmentActionSheet() {
+        guard let presenter = topMostViewController() else { return }
+        currentVC = presenter
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: Constants.camera, style: .default, handler: { (action) -> Void in
             self.authorisationStatus(attachmentTypeEnum: .camera, vc: self.currentVC!)
@@ -93,7 +95,7 @@ class AttachmentHandler: NSObject {
             }
         } else {
             switch photoStatus {
-                case .authorized:
+                case .authorized, .limited:
                     if attachmentTypeEnum == AttachmentType.photoLibrary { openLibrary() }
                 case .denied:
                     print("permission denied")
@@ -101,7 +103,7 @@ class AttachmentHandler: NSObject {
                 case .notDetermined:
                     print("Permission Not Determined")
                     PHPhotoLibrary.requestAuthorization({ (status) in
-                        if status == PHAuthorizationStatus.authorized {
+                        if status == .authorized || status == .limited {
                             // photo library access given
                             print("access given")
                             if attachmentTypeEnum == AttachmentType.photoLibrary { self.openLibrary() }
@@ -181,13 +183,13 @@ class AttachmentHandler: NSObject {
 extension AttachmentHandler: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        currentVC?.dismiss(animated: true, completion: nil)
+        picker.dismiss(animated: true, completion: nil)
     }
     
     @objc internal func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
             self.imagePickedBlock?(image)
         }
-        currentVC?.dismiss(animated: true, completion: nil)
+        picker.dismiss(animated: true, completion: nil)
     }
 }

@@ -10,12 +10,8 @@ import CoreData
 
 struct ExpenseFilterView: View {
     
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    // CoreData
-    @Environment(\.managedObjectContext) var managedObjectContext
-    @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
-    
-    @State var filter: ExpenseCDFilterTime = .month
+    @Environment(\.dismiss) private var dismiss
+    @State private var filter: ExpenseCDFilterTime = .month
     
     var isIncome: Bool?
     var categTag: String?
@@ -28,7 +24,7 @@ struct ExpenseFilterView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
                 VStack {
                     ScrollView(showsIndicators: false) {
                         if let isIncome = isIncome {
@@ -42,17 +38,21 @@ struct ExpenseFilterView: View {
                             }.frame(maxWidth: .infinity)
                             ExpenseFilterTransList(filter: filter, tag: tag)
                         }
-                    }.padding(.horizontal, 8).padding(.top, 0)
+                    }.padding(.horizontal, 16)
                 }
-                .navigationTitle("⚡ Aloki")
+                .navigationTitle(categTag.map { getTransTagTitle(transTag: $0) } ?? (isIncome == true ? "Income" : "Expenses"))
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly)
+                    }
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Menu {
                             Button("Overall") { haptics.lightButtonTap(); filter = .all }
                             Button("Last 7 days") { haptics.lightButtonTap(); filter = .week }
                             Button("Last 30 days") { haptics.lightButtonTap(); filter = .month }
                         } label: {
-                            Image(systemName: "contextualmenu.and.cursorarrow")
+                            Label("Period", systemImage: "line.3.horizontal.decrease")
                         }
                     }
                 }
@@ -66,27 +66,21 @@ struct ExpenseFilterChartView: View {
     var type: String
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
-    @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
-    
-    private func getTotalValue() -> Double {
-        var value = Double(0)
-        for i in expense { value += i.amount }
-        return value
-    }
+    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
     
     private func getChartModel() -> [ChartModel] {
         
-        var transactions = [String: Double]()
+        var transactions = [String: Decimal]()
         for i in expense {
-            guard let tag = i.tag else { continue }
-            if let value = transactions[tag] {
-                transactions[tag] = value + i.amount
-            } else { transactions[tag] = i.amount }
+            let tag = i.tag ?? "unknown"
+            guard let amount = try? i.amount(in: baseCurrency),
+                  let total = try? Money.add(transactions[tag] ?? 0, amount) else { return [] }
+            transactions[tag] = total
         }
         
         var models = [ChartModel]()
-        for i in transactions {
-            models.append(ChartModel(transType: getTransTagTitle(transTag: i.key), transAmount: i.value))
+        for i in transactions.sorted(by: { $0.key < $1.key }) {
+            models.append(ChartModel(transType: i.key == "unknown" ? "Unknown category" : getTransTagTitle(transTag: i.key), transAmount: NSDecimalNumber(decimal: i.value).doubleValue))
         }
         return models
     }
@@ -112,8 +106,12 @@ struct ExpenseFilterChartView: View {
     var body: some View {
         Group {
             if !expense.isEmpty {
-                Text("Total \(isIncome ? "Income" : "Expense") - \(CURRENCY)\(formatAmount(getTotalValue()))")
-                PieChartView(entries: ChartModel.getTransaction(transactions: getChartModel()))
+                Text("Total \(isIncome ? "Income" : "Expense") — \(Money.totalLabel(expense, base: baseCurrency))")
+                if (try? Money.total(expense, base: baseCurrency)) != nil {
+                    PieChartView(entries: ChartModel.getTransaction(transactions: getChartModel()))
+                } else {
+                    Text("Edit transactions with missing rates before displaying a converted chart.").font(.caption).foregroundStyle(.secondary)
+                }
             }
         }
     }
@@ -125,7 +123,7 @@ struct ExpenseFilterTransList: View {
     var currentFilter: ExpenseCDFilterTime
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
-    @State private var pickedExpense: ExpenseCD?
+    @State private var transactionSheet: TransactionSheet?
     
     init(isIncome: Bool? = nil, filter: ExpenseCDFilterTime, tag: String? = nil) {
         self.currentFilter = filter
@@ -159,16 +157,20 @@ struct ExpenseFilterTransList: View {
     
     var body: some View {
         LazyVStack(spacing: 8) {
+            if expense.isEmpty {
+                ContentUnavailableView("No Transactions", systemImage: "tray",
+                    description: Text("There are no transactions for this period."))
+            }
             ForEach(self.fetchRequest.wrappedValue) { expenseObj in
-                Button(action: {
-                    pickedExpense = expenseObj
-                }) {
-                    ExpenseTransView(expenseObj: expenseObj, currentFilter: currentFilter)
+                ExpenseTransView(expenseObj: expenseObj, currentFilter: currentFilter) {
+                    transactionSheet = .details(expenseObj)
+                } onCategory: { tag in
+                    transactionSheet = .category(tag)
                 }
             }
         }
-        .sheet(item: $pickedExpense) { expenseObj in
-            ExpenseDetailedView(expenseObj: expenseObj)
+        .sheet(item: $transactionSheet) { destination in
+            TransactionSheetView(destination: destination, filter: currentFilter)
         }
     }
 }

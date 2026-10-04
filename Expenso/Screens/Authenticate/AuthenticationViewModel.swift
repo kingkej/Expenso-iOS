@@ -12,9 +12,9 @@ class AuthenticationViewModel: ObservableObject {
     
     var cancellableBiometricTask: AnyCancellable? = nil
     
-    var didAuthenticate = false
-    var showAlert = false
-    var alertMessage = String()
+    @Published var didAuthenticate = false
+    @Published var showAlert = false
+    @Published var alertMessage = String()
         
     func authenticate(){
         didAuthenticate = false
@@ -25,8 +25,8 @@ class AuthenticationViewModel: ObservableObject {
             .sink(receiveCompletion: { completion in
                 switch completion {
                 case .failure(let error):
-                    self.showAlert = true
                     self.alertMessage = error.description
+                    self.showAlert = true
                 default: return
                 }
             }) { _ in

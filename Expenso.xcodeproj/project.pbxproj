@@ -7,6 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        A26010040000000000000301 /* OwnerLedgerMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000311; };
+        A26010040000000000000201 /* ReceiptInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000211; };
+        A26010040000000000000202 /* ReceiptEvidenceValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000212; };
+        A26010040000000000000203 /* ReceiptEvidenceValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000213; };
+        A26010040000000000000101 /* ReceiptParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000111; };
+        A26010040000000000000102 /* ReceiptScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000112; };
+        A26010040000000000000103 /* ReceiptImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000113; };
+        A26010040000000000000104 /* ReceiptParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000114; };
+        F26010040000000000000001 /* CurrencySupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010040000000000000011 /* CurrencySupportTests.swift */; };
+        F26010040000000000000002 /* ExchangeRateServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010040000000000000012 /* ExchangeRateServiceTests.swift */; };
+        E26010040000000000000004 /* CurrencySupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010040000000000000014 /* CurrencySupport.swift */; };
+        E26010040000000000000005 /* ExchangeRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010040000000000000015 /* ExchangeRateService.swift */; };
+        E26010040000000000000001 /* SpendingChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010040000000000000011 /* SpendingChatView.swift */; };
+        E26010040000000000000002 /* SpendingChatModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010040000000000000012 /* SpendingChatModel.swift */; };
+        E26010040000000000000003 /* SpendingDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010040000000000000013 /* SpendingDataStore.swift */; };
 		736C720A25CFD89900720DEA /* empty-face.json in Resources */ = {isa = PBXBuildFile; fileRef = 736C720925CFD89900720DEA /* empty-face.json */; };
 		738B1C1825C65DFE0067407B /* ExpensoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738B1C1725C65DFE0067407B /* ExpensoApp.swift */; };
 		738B1C1C25C65E060067407B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 738B1C1B25C65E060067407B /* Assets.xcassets */; };
@@ -57,6 +72,16 @@
 		AEEF1D8B2CEDEDD00059F63B /* ExtraLottie in Frameworks */ = {isa = PBXBuildFile; productRef = AEEF1D8A2CEDEDD00059F63B /* ExtraLottie */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+        F26010040000000000000031 /* PBXContainerItemProxy */ = {
+            isa = PBXContainerItemProxy;
+            containerPortal = 738B1C0C25C65DFE0067407B /* Project object */;
+            proxyType = 1;
+            remoteGlobalIDString = 738B1C1325C65DFE0067407B;
+            remoteInfo = Expenso;
+        };
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		AEEF1D9A2CEDF0730059F63B /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -71,6 +96,23 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        A26010040000000000000311 /* OwnerLedgerMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerLedgerMigrationTests.swift; sourceTree = "<group>"; };
+        A26010040000000000000211 /* ReceiptInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptInterpreter.swift; sourceTree = "<group>"; };
+        A26010040000000000000212 /* ReceiptEvidenceValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptEvidenceValidator.swift; sourceTree = "<group>"; };
+        A26010040000000000000213 /* ReceiptEvidenceValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptEvidenceValidatorTests.swift; sourceTree = "<group>"; };
+        A26010040000000000000111 /* ReceiptParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptParser.swift; sourceTree = "<group>"; };
+        A26010040000000000000112 /* ReceiptScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptScanner.swift; sourceTree = "<group>"; };
+        A26010040000000000000113 /* ReceiptImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptImportView.swift; sourceTree = "<group>"; };
+        A26010040000000000000114 /* ReceiptParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptParserTests.swift; sourceTree = "<group>"; };
+        F26010040000000000000011 /* CurrencySupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencySupportTests.swift; sourceTree = "<group>"; };
+        F26010040000000000000012 /* ExchangeRateServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRateServiceTests.swift; sourceTree = "<group>"; };
+        F26010040000000000000013 /* ExpensoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExpensoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+        E26010040000000000000014 /* CurrencySupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencySupport.swift; sourceTree = "<group>"; };
+        E26010040000000000000015 /* ExchangeRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRateService.swift; sourceTree = "<group>"; };
+        E26010040000000000000016 /* ExpensoV2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ExpensoV2.xcdatamodel; sourceTree = "<group>"; };
+        E26010040000000000000011 /* SpendingChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingChatView.swift; sourceTree = "<group>"; };
+        E26010040000000000000012 /* SpendingChatModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingChatModel.swift; sourceTree = "<group>"; };
+        E26010040000000000000013 /* SpendingDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingDataStore.swift; sourceTree = "<group>"; };
 		736C720925CFD89900720DEA /* empty-face.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "empty-face.json"; sourceTree = "<group>"; };
 		738B1C1425C65DFE0067407B /* Expenso.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Expenso.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		738B1C1725C65DFE0067407B /* ExpensoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpensoApp.swift; sourceTree = "<group>"; };
@@ -119,6 +161,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+        F26010040000000000000041 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		738B1C1125C65DFE0067407B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -134,9 +177,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+        F26010040000000000000020 /* ExpensoTests */ = {
+            isa = PBXGroup;
+            children = (F26010040000000000000011 /* CurrencySupportTests.swift */, F26010040000000000000012 /* ExchangeRateServiceTests.swift */, A26010040000000000000114 /* ReceiptParserTests.swift */, A26010040000000000000213 /* ReceiptEvidenceValidatorTests.swift */, A26010040000000000000311 /* OwnerLedgerMigrationTests.swift */);
+            path = ExpensoTests;
+            sourceTree = "<group>";
+        };
+        E26010040000000000000020 /* SpendingChat */ = {
+            isa = PBXGroup;
+            children = (
+                E26010040000000000000011 /* SpendingChatView.swift */,
+                E26010040000000000000012 /* SpendingChatModel.swift */,
+            );
+            path = SpendingChat;
+            sourceTree = "<group>";
+        };
 		733763A827120DB600AA983A /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+                E26010040000000000000020 /* SpendingChat */,
 				739DFF7925DC1E23005BD5C8 /* Authenticate */,
 				738B1C8E25C680C50067407B /* About */,
 				738B1C8925C67D790067407B /* ExpenseFilter */,
@@ -181,6 +240,7 @@
 		738B1C0B25C65DFE0067407B = {
 			isa = PBXGroup;
 			children = (
+				F26010040000000000000020 /* ExpensoTests */,
 				738B1C1625C65DFE0067407B /* Expenso */,
 				AEEF1D942CEDF0700059F63B /* Frameworks */,
 				738B1C1525C65DFE0067407B /* Products */,
@@ -190,6 +250,7 @@
 		738B1C1525C65DFE0067407B /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				F26010040000000000000013 /* ExpensoTests.xctest */,
 				738B1C1425C65DFE0067407B /* Expenso.app */,
 			);
 			name = Products;
@@ -284,6 +345,7 @@
 			children = (
 				738B1C7625C675200067407B /* AddExpenseView.swift */,
 				738B1C7A25C6752E0067407B /* AddExpenseViewModel.swift */,
+                A26010040000000000000113 /* ReceiptImportView.swift */,
 			);
 			path = AddExpense;
 			sourceTree = "<group>";
@@ -349,6 +411,13 @@
 		AE4EB3D52D0A8E1E00F5A1EF /* Services */ = {
 			isa = PBXGroup;
 			children = (
+                E26010040000000000000013 /* SpendingDataStore.swift */,
+                E26010040000000000000014 /* CurrencySupport.swift */,
+                E26010040000000000000015 /* ExchangeRateService.swift */,
+                A26010040000000000000111 /* ReceiptParser.swift */,
+                A26010040000000000000112 /* ReceiptScanner.swift */,
+                A26010040000000000000211 /* ReceiptInterpreter.swift */,
+                A26010040000000000000212 /* ReceiptEvidenceValidator.swift */,
 				AE4EB3D62D0A8E2400F5A1EF /* HapticService.swift */,
 			);
 			path = Services;
@@ -364,6 +433,17 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+        F26010040000000000000030 /* ExpensoTests */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = F26010040000000000000052 /* Build configuration list for PBXNativeTarget "ExpensoTests" */;
+            buildPhases = (F26010040000000000000040 /* Sources */, F26010040000000000000041 /* Frameworks */, F26010040000000000000042 /* Resources */);
+            buildRules = ();
+            dependencies = (F26010040000000000000032 /* PBXTargetDependency */);
+            name = ExpensoTests;
+            productName = ExpensoTests;
+            productReference = F26010040000000000000013 /* ExpensoTests.xctest */;
+            productType = "com.apple.product-type.bundle.unit-test";
+        };
 		738B1C1325C65DFE0067407B /* Expenso */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 738B1C2825C65E060067407B /* Build configuration list for PBXNativeTarget "Expenso" */;
@@ -391,6 +471,7 @@
 				LastSwiftUpdateCheck = 1220;
 				LastUpgradeCheck = 1220;
 				TargetAttributes = {
+                    F26010040000000000000030 = {CreatedOnToolsVersion = 27.0; TestTargetID = 738B1C1325C65DFE0067407B; };
 					738B1C1325C65DFE0067407B = {
 						CreatedOnToolsVersion = 12.2;
 					};
@@ -414,12 +495,14 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				F26010040000000000000030 /* ExpensoTests */,
 				738B1C1325C65DFE0067407B /* Expenso */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+        F26010040000000000000042 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		738B1C1225C65DFE0067407B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -443,10 +526,26 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+        F26010040000000000000040 /* Sources */ = {
+            isa = PBXSourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = (F26010040000000000000001 /* CurrencySupportTests.swift in Sources */, F26010040000000000000002 /* ExchangeRateServiceTests.swift in Sources */, A26010040000000000000104 /* ReceiptParserTests.swift in Sources */, A26010040000000000000203 /* ReceiptEvidenceValidatorTests.swift in Sources */, A26010040000000000000301 /* OwnerLedgerMigrationTests.swift in Sources */);
+            runOnlyForDeploymentPostprocessing = 0;
+        };
 		738B1C1025C65DFE0067407B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                E26010040000000000000001 /* SpendingChatView.swift in Sources */,
+                E26010040000000000000002 /* SpendingChatModel.swift in Sources */,
+                E26010040000000000000003 /* SpendingDataStore.swift in Sources */,
+                E26010040000000000000004 /* CurrencySupport.swift in Sources */,
+                E26010040000000000000005 /* ExchangeRateService.swift in Sources */,
+                A26010040000000000000101 /* ReceiptParser.swift in Sources */,
+                A26010040000000000000102 /* ReceiptScanner.swift in Sources */,
+                A26010040000000000000103 /* ReceiptImportView.swift in Sources */,
+                A26010040000000000000201 /* ReceiptInterpreter.swift in Sources */,
+                A26010040000000000000202 /* ReceiptEvidenceValidator.swift in Sources */,
 				738B1C3825C661750067407B /* ExpenseView.swift in Sources */,
 				73998C5525DA5578007D735B /* AttachmentHandler.swift in Sources */,
 				AE4EB3D72D0A8E2C00F5A1EF /* HapticService.swift in Sources */,
@@ -482,7 +581,51 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+        F26010040000000000000032 /* PBXTargetDependency */ = {
+            isa = PBXTargetDependency;
+            target = 738B1C1325C65DFE0067407B /* Expenso */;
+            targetProxy = F26010040000000000000031 /* PBXContainerItemProxy */;
+        };
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+        F26010040000000000000050 /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                BUNDLE_LOADER = "$(TEST_HOST)";
+                CODE_SIGN_STYLE = Automatic;
+                DEVELOPMENT_TEAM = KTNPDHXXV3;
+                GENERATE_INFOPLIST_FILE = YES;
+                IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+                LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");
+                PRODUCT_BUNDLE_IDENTIFIER = com.expenso.ExpensoTests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SDKROOT = iphoneos;
+                SWIFT_VERSION = 5.0;
+                TARGETED_DEVICE_FAMILY = "1,2";
+                TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Expenso.app/Expenso";
+            };
+            name = Debug;
+        };
+        F26010040000000000000051 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                BUNDLE_LOADER = "$(TEST_HOST)";
+                CODE_SIGN_STYLE = Automatic;
+                DEVELOPMENT_TEAM = KTNPDHXXV3;
+                GENERATE_INFOPLIST_FILE = YES;
+                IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+                LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");
+                PRODUCT_BUNDLE_IDENTIFIER = com.expenso.ExpensoTests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SDKROOT = iphoneos;
+                SWIFT_VERSION = 5.0;
+                TARGETED_DEVICE_FAMILY = "1,2";
+                TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Expenso.app/Expenso";
+            };
+            name = Release;
+        };
 		738B1C2625C65E060067407B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -616,7 +759,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expenso.Expenso;
+				EXPENSO_APP_BUNDLE_ID = com.expenso.Expenso;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(EXPENSO_APP_BUNDLE_ID)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -640,7 +784,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expenso.Expenso;
+				EXPENSO_APP_BUNDLE_ID = com.expenso.Expenso;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(EXPENSO_APP_BUNDLE_ID)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -650,6 +795,12 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+        F26010040000000000000052 /* Build configuration list for PBXNativeTarget "ExpensoTests" */ = {
+            isa = XCConfigurationList;
+            buildConfigurations = (F26010040000000000000050 /* Debug */, F26010040000000000000051 /* Release */);
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
+        };
 		738B1C0F25C65DFE0067407B /* Build configuration list for PBXProject "Expenso" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -745,9 +896,10 @@
 		738B1C2225C65E060067407B /* Expenso.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				E26010040000000000000016 /* ExpensoV2.xcdatamodel */,
 				738B1C2325C65E060067407B /* Expenso.xcdatamodel */,
 			);
-			currentVersion = 738B1C2325C65E060067407B /* Expenso.xcdatamodel */;
+			currentVersion = E26010040000000000000016 /* ExpensoV2.xcdatamodel */;
 			path = Expenso.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

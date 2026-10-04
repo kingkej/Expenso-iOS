@@ -6,88 +6,88 @@
 //
 
 import SwiftUI
-import ExtraLottie
-import FluidGradient
 import CoreData
 
-struct ExpenseView: View {
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    @Environment(\.managedObjectContext) var managedObjectContext
-    @FetchRequest(fetchRequest: ExpenseCD.getAllExpenseData(sortBy: ExpenseCDSort.occuredOn, ascending: false)) var expense: FetchedResults<ExpenseCD>
-    
-    @State private var filter: ExpenseCDFilterTime = .month
-    
-    
-    @State private var displayAbout = false
-    @State private var displaySettings = false
-    @State private var showAddExpenseSheet = false
-    
-    let haptics = HapticsHelper.shared
-    
-    // Using anchored Menus for toolbar interactions
-    
+/// A stable presentation host keeps sheets alive when a transaction row disappears.
+enum TransactionSheet: Identifiable {
+    case details(ExpenseCD), summary(Bool), category(String)
+
+    var id: String {
+        switch self {
+        case .details(let expense): return "details-\(expense.objectID.uriRepresentation().absoluteString)"
+        case .summary(let income): return "summary-\(income)"
+        case .category(let tag): return "category-\(tag)"
+        }
+    }
+}
+
+struct TransactionSheetView: View {
+    let destination: TransactionSheet
+    let filter: ExpenseCDFilterTime
+
     var body: some View {
-        NavigationView {
-            ZStack {
-                VStack {
-                    ExpenseMainView(filter: filter)
-                    Spacer()
+        Group {
+            switch destination {
+            case .details(let expense): ExpenseDetailedView(expenseObj: expense)
+            case .summary(let income): ExpenseFilterView(isIncome: income, defaultFilter: filter)
+            case .category(let tag): ExpenseFilterView(categTag: tag, defaultFilter: filter)
+            }
+        }
+        .expenseSheetStyle()
+    }
+}
+
+struct ExpenseView: View {
+    private enum Sheet: String, Identifiable {
+        case add, settings, about
+        var id: String { rawValue }
+    }
+    @State private var filter: ExpenseCDFilterTime = .month
+    @State private var sheet: Sheet?
+
+    var body: some View {
+        NavigationStack {
+            ExpenseMainView(filter: filter)
+                .background(Color(uiColor: .systemGroupedBackground))
+                .navigationTitle("Dashboard")
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Menu {
+                            Button("Settings", systemImage: "gearshape") { sheet = .settings }
+                            Button("About Expenso", systemImage: "info.circle") { sheet = .about }
+                        } label: { Label("Options", systemImage: "ellipsis") }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Picker("Period", selection: $filter) {
+                                Text("Overall").tag(ExpenseCDFilterTime.all)
+                                Text("Last 7 days").tag(ExpenseCDFilterTime.week)
+                                Text("Last 30 days").tag(ExpenseCDFilterTime.month)
+                            }
+                        } label: { Label("Period", systemImage: "line.3.horizontal.decrease") }
+                    }
                 }
-                
-                VStack {
-                    Spacer()
+                .safeAreaInset(edge: .bottom) {
                     HStack {
                         Spacer()
-                        Button(action: {
-                            haptics.hardButtonTap()
-                            showAddExpenseSheet = true
-                        }) {
-                            Image(systemName: "plus")
-                                .resizable()
-                                .foregroundColor(.black)
-                                .frame(width: 28.0, height: 28.0)
+                        Button {
+                            HapticsHelper.shared.hardButtonTap()
+                            sheet = .add
+                        } label: { Label("Add Transaction", systemImage: "plus") }
+                        .primaryActionStyle()
+                    }
+                    .padding(.horizontal, 20).padding(.vertical, 12)
+                }
+                .sheet(item: $sheet) { destination in
+                    Group {
+                        switch destination {
+                        case .add: AddExpenseView(viewModel: AddExpenseViewModel())
+                        case .settings: ExpenseSettingsView()
+                        case .about: AboutView()
                         }
-                        .padding()
-                        .background(Color.defaultLightGradient)
-                        .cornerRadius(35)
                     }
+                    .expenseSheetStyle()
                 }
-                .padding()
-            }
-            .navigationTitle("⚡ Dashboard")
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button("About") { haptics.lightButtonTap(); self.displayAbout = true }
-                        Button("Settings") { haptics.lightButtonTap(); self.displaySettings = true }
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                    Menu {
-                        Button("Overall") { haptics.lightButtonTap(); filter = .all }
-                        Button("Last 7 days") { haptics.lightButtonTap(); filter = .week }
-                        Button("Last 30 days") { haptics.lightButtonTap(); filter = .month }
-                    } label: {
-                        Image(systemName: "contextualmenu.and.cursorarrow")
-                    }
-                }
-            }
-            .sheet(isPresented: $showAddExpenseSheet) {
-                AddExpenseView(viewModel: AddExpenseViewModel())
-            }
-            .sheet(isPresented: $displayAbout) {
-                
-            }
-            .sheet(isPresented: $displaySettings) {
-                ExpenseSettingsView()
-            }
-            .onChange(of: showAddExpenseSheet) { newValue in
-                if newValue == false {
-                    managedObjectContext.refreshAllObjects()
-                }
-            }
-            
-            .ignoresSafeArea(.container, edges: .bottom)
         }
     }
 }
@@ -96,13 +96,9 @@ struct ExpenseMainView: View {
     var filter: ExpenseCDFilterTime
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
-    @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
+    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
     
-    @State private var pickedExpense: ExpenseCD?
-    @State private var showDetailedExpenseSheet = false
-    
-    @State private var showingExprenseFilerSheet = false
-    @State private var showingIncomeFilerSheet = false
+    @State private var transactionSheet: TransactionSheet?
     
     let haptics = HapticsHelper.shared
     
@@ -126,88 +122,67 @@ struct ExpenseMainView: View {
         fetchRequest = FetchRequest<ExpenseCD>(fetchRequest: request)
     }
     
-    private func getTotalBalance() -> Double {
-        var value = Double(0)
-        for i in expense {
-            if i.type == TRANS_TYPE_INCOME { value += i.amount }
-            else if i.type == TRANS_TYPE_EXPENSE { value -= i.amount }
-        }
-        return value
-    }
-    
     var body: some View {
         ScrollView(showsIndicators: false) {
             if fetchRequest.wrappedValue.isEmpty {
-                ExtraLottieView(animationName: "empty-face")
-                    .frame(
-                        width: 300, height: 300)
-                VStack {
-                    TextView(text: "No Transaction Yet!", type: .h6).foregroundColor(Color.text_primary_color)
-                    TextView(text: "Add a transaction and it will show up here", type: .body_1).foregroundColor(Color.text_secondary_color).padding(.top, 2)
-                }.padding(.horizontal)
+                ContentUnavailableView("No Transactions", systemImage: "tray",
+                    description: Text("Add a transaction to start tracking your balance."))
+                    .padding(.top, 60)
             } else {
                 VStack(spacing: 16) {
                     TextView(text: "TOTAL BALANCE", type: .overline)
-                        .foregroundStyle(.black)
+                        .foregroundStyle(.primary)
                         .padding(.top, 30)
-                    TextView(text: "\(CURRENCY)\(formatAmount(getTotalBalance()))", type: .h5)
-                        .foregroundStyle(.black)
+                    TextView(text: Money.totalLabel(expense, base: baseCurrency, balance: true), type: .h5)
+                        .foregroundStyle(.primary)
                         .padding(.bottom, 30)
                 }.frame(maxWidth: .infinity)
-                    .background(FluidGradient(blobs: [.cyan.opacity(0.4), .purple.opacity(0.4)],
-                                                                      speed: 0.05,
-                                                                      blur: 0.75)
-                        .background(Color.defaultLightGradient))
-                    .cornerRadius(10)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
                 
                 HStack(spacing: 8) {
                     Button(action: {
                         haptics.lightButtonTap()
-                        showingIncomeFilerSheet = true
+                        transactionSheet = .summary(true)
                     }) {
                         ExpenseModelView(isIncome: true, filter: filter)
                     }
                     Button(action: {
                         haptics.lightButtonTap()
-                        showingExprenseFilerSheet = true
+                        transactionSheet = .summary(false)
                     }) {
                         ExpenseModelView(isIncome: false, filter: filter)
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .buttonStyle(.plain)
                 
                 Spacer().frame(height: 16)
                 
                 HStack {
-                    TextView(text: "Recent Transaction", type: .subtitle_1).foregroundColor(Color.text_primary_color)
+                    Label("Recent Transactions", systemImage: "list.bullet.rectangle").font(.headline).foregroundStyle(.primary)
                     Spacer()
                 }.padding(4)
                 
                 LazyVStack(spacing: 8) {
                     ForEach(self.fetchRequest.wrappedValue) { expenseObj in
-                        Button(action: {
+                        ExpenseTransView(expenseObj: expenseObj, currentFilter: filter) {
                             haptics.hardButtonTap()
-                            pickedExpense = expenseObj
-                        })
-                        {
-                            ExpenseTransView(expenseObj: expenseObj, currentFilter: filter)
+                            transactionSheet = .details(expenseObj)
+                        } onCategory: { tag in
+                            transactionSheet = .category(tag)
                         }
                     }
                 }
-                .sheet(item: $pickedExpense) { expenseObj in
-                    ExpenseDetailedView(expenseObj: expenseObj)
-                }
-                .sheet(isPresented: $showingExprenseFilerSheet) {
-                    ExpenseFilterView(isIncome: false, defaultFilter: filter)
-                }
-                .sheet(isPresented: $showingIncomeFilerSheet) {
-                    ExpenseFilterView(isIncome: true, defaultFilter: filter)
-                }
+
             }
             
-            Spacer().frame(height: 150)
+            Spacer().frame(height: 16)
             
-        }.padding(.horizontal, 8).padding(.top, 0)
+        }
+        .padding(.horizontal, 16)
+        .sheet(item: $transactionSheet) { destination in
+            TransactionSheetView(destination: destination, filter: filter)
+        }
     }
 }
 
@@ -217,17 +192,7 @@ struct ExpenseModelView: View {
     var type: String
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
-    @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
-    var gradientBlobs: [Color] {
-        if isIncome { return [.green.opacity(0.3), .mint.opacity(0.3)] }
-        else { return [.red.opacity(0.5), .orange.opacity(0.4)] }
-    }
-    
-    private func getTotalValue() -> Double {
-        var value = Double(0)
-        for i in expense { value += i.amount }
-        return value
-    }
+    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
     
     init(isIncome: Bool, filter: ExpenseCDFilterTime, categTag: String? = nil) {
         self.isIncome = isIncome
@@ -257,67 +222,74 @@ struct ExpenseModelView: View {
         VStack(spacing: 12) {
             HStack {
                 Spacer()
-                Image(isIncome ? "income_icon" : "expense_icon").resizable().frame(width: 40.0, height: 40.0).padding(12)
+                Image(systemName: isIncome ? "arrow.down.left" : "arrow.up.right").font(.title2.weight(.semibold)).foregroundStyle(isIncome ? Color.green : Color.red).padding(12)
             }
             HStack{
                 TextView(text: isIncome ? "INCOME" : "EXPENSE", type: .overline)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
                 Spacer()
             }
             .padding(.horizontal, 12)
             HStack {
-                TextView(text: "\(CURRENCY)\(formatAmount(getTotalValue()))", type: .h5, lineLimit: 1)
-                    .foregroundStyle(.black)
+                TextView(text: Money.totalLabel(expense, base: baseCurrency), type: .h5, lineLimit: 1)
+                    .foregroundStyle(.primary)
                 Spacer()
             }
             .padding(.horizontal, 12)
         }
         .padding(.bottom, 12)
-        .background(FluidGradient(blobs: gradientBlobs, speed: 0.05, blur: 0.75)
-            .background(Color.defaultLightGradient))
-        .cornerRadius(10)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
     }
 }
 
 struct ExpenseTransView: View {
+    @Environment(\.appAccentColor) private var accentColor
     @ObservedObject var expenseObj: ExpenseCD
     var currentFilter: ExpenseCDFilterTime
-    @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
-    @State private var showingExprenseFilterSheet = false
-    
+    var onSelect: () -> Void
+    var onCategory: (String) -> Void
+    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
+
     var body: some View {
-        HStack {
-            Button(action: {
-                showingExprenseFilterSheet = true
-            }) {
-                Text(getTransTagEmoji(transTag: expenseObj.tag ?? ""))
-                    .padding(16)
+        HStack(spacing: 12) {
+            Button {
+                onCategory(expenseObj.tag ?? TRANS_TAG_OTHERS)
+            } label: {
+                Image(systemName: transactionSymbol(for: expenseObj.tag ?? ""))
+                    .font(.title3).frame(width: 48, height: 48)
+                    .background(accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
             }
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    TextView(text: expenseObj.title ?? "", type: .subtitle_1, lineLimit: 1).foregroundColor(Color.text_primary_color)
-                    Spacer()
-                    TextView(text: "\(expenseObj.type == TRANS_TYPE_INCOME ? "+" : "-")\(CURRENCY)\(expenseObj.amount)", type: .subtitle_1)
-                        .foregroundColor(expenseObj.type == TRANS_TYPE_INCOME ? Color.main_green : Color.main_red)
+            .buttonStyle(.plain)
+            .accessibilityLabel("View \(getTransTagTitle(transTag: expenseObj.tag ?? "")) transactions")
+
+            Button(action: onSelect) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(expenseObj.title ?? "").font(.headline).lineLimit(1)
+                        Spacer(minLength: 8)
+                        Text("\(expenseObj.type == TRANS_TYPE_INCOME ? "+" : "−")\(expenseObj.originalAmountLabel)")
+                            .font(.headline).monospacedDigit()
+                            .foregroundStyle(expenseObj.type == TRANS_TYPE_INCOME ? Color.green : Color.primary)
+                    }
+                    if expenseObj.originalCurrency != baseCurrency {
+                        Text("In base: \(expenseObj.convertedAmountLabel(in: baseCurrency))")
+                            .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                    }
+                    HStack {
+                        Text(getTransTagTitle(transTag: expenseObj.tag ?? ""))
+                        Spacer()
+                        Text(getDateFormatter(date: expenseObj.occuredOn, format: "MMM dd, yyyy"))
+                    }
+                    .font(.caption).foregroundStyle(.secondary)
                 }
-                HStack {
-                    TextView(text: getTransTagTitle(transTag: expenseObj.tag ?? ""), type: .body_2).foregroundColor(Color.text_primary_color)
-                    Spacer()
-                    TextView(text: getDateFormatter(date: expenseObj.occuredOn, format: "MMM dd, yyyy"), type: .body_2).foregroundColor(Color.text_primary_color)
-                }
-            }.padding(.leading, 4)
-            
-            Spacer()
-            
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
-        .padding(8)
-        .background(
-            .ultraThinMaterial // This applies a blur effect to the background
-        )
-        .cornerRadius(10)
-        .sheet(isPresented: $showingExprenseFilterSheet) {
-            ExpenseFilterView(categTag: expenseObj.tag, defaultFilter: currentFilter)
-        }
+        .foregroundStyle(.primary)
+        .padding(12)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
     }
 }
 

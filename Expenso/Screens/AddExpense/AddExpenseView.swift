@@ -1,169 +1,119 @@
-//
-//  AddExpenseView.swift
-//  Expenso
-//
-//  Created by Sameer Nawaz on 31/01/21.
-//
-
 import SwiftUI
-import Pow
+import CoreData
 
 struct AddExpenseView: View {
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    // CoreData
-    @Environment(\.managedObjectContext) var managedObjectContext
-    @State private var confirmDelete = false
-    @State var showAttachSheet = false
-    
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var managedObjectContext
+    @State private var showAttachmentRemoval = false
+    @State private var showCurrencyPicker = false
+    @State private var showConversionPicker = false
+    @State private var showReceiptScanner = false
+    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
     @StateObject var viewModel: AddExpenseViewModel
-    
-    let typeOptions = [
-        DropdownOption(key: TRANS_TYPE_INCOME, val: "Income"),
-        DropdownOption(key: TRANS_TYPE_EXPENSE, val: "Expense")
-    ]
-    
-    let tagOptions = [
-        DropdownOption(key: TRANS_TAG_TRANSPORT, val: "Transport"),
-        DropdownOption(key: TRANS_TAG_FOOD, val: "Food"),
-        DropdownOption(key: TRANS_TAG_HOUSING, val: "Housing"),
-        DropdownOption(key: TRANS_TAG_INSURANCE, val: "Insurance"),
-        DropdownOption(key: TRANS_TAG_MEDICAL, val: "Medical"),
-        DropdownOption(key: TRANS_TAG_SAVINGS, val: "Savings"),
-        DropdownOption(key: TRANS_TAG_PERSONAL, val: "Personal"),
-        DropdownOption(key: TRANS_TAG_ENTERTAINMENT, val: "Entertainment"),
-        DropdownOption(key: TRANS_TAG_OTHERS, val: "Others"),
-        DropdownOption(key: TRANS_TAG_UTILITIES, val: "Utilities"),
-        DropdownOption(key: TRANS_TAG_CAR, val: "Car"),
-        DropdownOption(key: TRANS_TAG_TRAVEL, val: "Travel")
-    ]
-    let haptics = HapticsHelper.shared
-    
+
+    private let categories = [TRANS_TAG_TRANSPORT, TRANS_TAG_FOOD, TRANS_TAG_HOUSING,
+        TRANS_TAG_INSURANCE, TRANS_TAG_MEDICAL, TRANS_TAG_SAVINGS, TRANS_TAG_PERSONAL,
+        TRANS_TAG_ENTERTAINMENT, TRANS_TAG_OTHERS, TRANS_TAG_UTILITIES, TRANS_TAG_CAR, TRANS_TAG_TRAVEL]
+
     var body: some View {
-        NavigationView {
-            VStack {
-                ScrollView(showsIndicators: false) {
+        NavigationStack {
+            Form {
+                Section {
+                    Button("Scan Receipt", systemImage: "doc.viewfinder") { showReceiptScanner = true }
+                } footer: { Text("Read a paper receipt or saved image on-device, then review the suggested fields.") }
+                Section("Transaction") {
                     TextField("Title", text: $viewModel.title)
-                        .promptFrameAndBackground(maxHeight: 55)
-                        .padding(.top, 25)
-                    
-                    TextField("Amount", text: $viewModel.amount)
-                        .keyboardType(.decimalPad)
-                        .promptFrameAndBackground(maxHeight: 55)
-                        .padding(.bottom, 25)
-                    
-                    // Type Picker
-                    HStack {
-                        Text("Type")
-                        Spacer()
-                        Picker("Type", selection: $viewModel.selectedType) {
-                            ForEach(typeOptions, id: \.key) { option in
-                                Text(option.val).tag(option.key)
-                            }
-                        }
-                        .onChange(of: viewModel.selectedType) { newKey in
-                            if let selectedObj = typeOptions.first(where: { $0.key == newKey }) {
-                                viewModel.typeTitle = selectedObj.val
-                            }
+                    TextField("Amount", text: $viewModel.amount).keyboardType(.decimalPad)
+                    Button { showCurrencyPicker = true } label: {
+                        LabeledContent("Currency", value: viewModel.currency)
+                    }
+                    Picker("Type", selection: $viewModel.selectedType) {
+                        Label("Income", systemImage: "arrow.down.left").tag(TRANS_TYPE_INCOME)
+                        Label("Expense", systemImage: "arrow.up.right").tag(TRANS_TYPE_EXPENSE)
+                    }
+                    Picker("Category", selection: $viewModel.selectedTag) {
+                        ForEach(categories, id: \.self) { tag in
+                            Label(getTransTagTitle(transTag: tag), systemImage: transactionSymbol(for: tag)).tag(tag)
                         }
                     }
-                    .promptFrameAndBackground(maxHeight: 50)
-                    
-                    // Tag Picker
-                    HStack {
-                        Text("Tag")
-                        Spacer()
-                        Picker("Tag", selection: $viewModel.selectedTag) {
-                            ForEach(tagOptions, id: \.key) { option in
-                                Text(option.val).tag(option.key)
-                            }
-                        }
-                        .onChange(of: viewModel.selectedTag) { newKey in
-                            if let selectedObj = tagOptions.first(where: { $0.key == newKey }) {
-                                viewModel.tagTitle = selectedObj.val
-                            }
-                        }
+                    DatePicker("Date", selection: $viewModel.occuredOn, displayedComponents: [.date, .hourAndMinute])
+                }
+                Section {
+                    Button { showConversionPicker = true } label: {
+                        LabeledContent("Conversion Currency", value: viewModel.conversionCurrency)
                     }
-                    .promptFrameAndBackground(maxHeight: 50)
-                    
-                    HStack {
-                        Text("Date")
-                        Spacer()
-                        DatePicker("PickerView", selection: $viewModel.occuredOn,
-                                   displayedComponents: [.date, .hourAndMinute]).labelsHidden()
-                    }
-                    .promptFrameAndBackground(maxHeight: 50)
-                    .padding(.bottom, 25)
-                    
-                    TextField("Note", text: $viewModel.note)
-                        .promptFrameAndBackground(maxHeight: 50)
-                    
-                    Button(action: { viewModel.attachImage() }) {
-                        HStack {
-                            Image(systemName: "paperclip")
-                            Text("Attach an image")
+                    if viewModel.currency != viewModel.conversionCurrency {
+                        if viewModel.isFetchingRate { ProgressView("Fetching daily rate…") }
+                        if let converted = viewModel.conversionPreview { LabeledContent("Converted Amount", value: converted) }
+                        if let snapshot = viewModel.rateSnapshot {
+                            Text("Locked rate: \(snapshot.date) • \(snapshot.displaySource)").font(.caption).foregroundStyle(.secondary)
+                        }
+                        if let error = viewModel.rateError {
+                            Text(error).font(.caption).foregroundStyle(.red)
+                            Button("Retry Rate", systemImage: "arrow.clockwise") { Task { await viewModel.refreshRate() } }
+                        }
+                        Toggle("Enter a manual rate", isOn: $viewModel.useManualRate)
+                        if viewModel.useManualRate {
+                            TextField("1 \(viewModel.currency) = ? \(viewModel.conversionCurrency)", text: $viewModel.manualRate).keyboardType(.decimalPad)
                         }
                     }
-                    .promptFrameAndBackground(maxHeight: 50)
-                    .contentShape(Rectangle())
-                    .actionSheet(isPresented: $showAttachSheet) {
-                        ActionSheet(title: Text("Do you want to remove the attachment?"), buttons: [
-                            .default(Text("Remove")) { viewModel.removeImage() },
-                            .cancel()
-                        ])
-                    }
-                    
+                } header: { Text("Locked Conversion") } footer: {
+                    Text("Totals use \(baseCurrency); original amounts stay in \(viewModel.currency). Daily rates are saved and never refresh with the market. For unavailable history, choose a conversion currency and enter a manual rate. Manual rates cover only that pair; other base currencies may require another explicit edit.")
+                }
+                Section("Notes") {
+                    TextField("Optional note", text: $viewModel.note, axis: .vertical).lineLimit(3...6)
+                }
+                Section("Attachment") {
+                    Button("Attach an image", systemImage: "paperclip") { viewModel.attachImage() }
                     if let image = viewModel.imageAttached {
-                        Button(action: { showAttachSheet = true }, label: {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 250).frame(maxWidth: .infinity)
-                                .background(Color.secondary_color)
-                                .cornerRadius(4)
-                        })
+                        Image(uiImage: image).resizable().scaledToFit()
+                            .frame(maxHeight: 240).clipShape(RoundedRectangle(cornerRadius: 16))
+                        Button("Remove attachment", systemImage: "trash", role: .destructive) {
+                            showAttachmentRemoval = true
+                        }
                     }
                 }
-                .dismissKeyboardOnTap()
-                
-                Button(action: {
-                    haptics.hardButtonTap()
-                    viewModel.saveTransaction(managedObjectContext: managedObjectContext)
-                }) {
-                    Text(viewModel.getButtText())
-                }
-                .buttonStyle(CapsuleButtonStyle())
-                .padding()
             }
+            .disabled(viewModel.isSaving)
+            .scrollDismissesKeyboard(.interactively)
+            .scrollContentBackground(.hidden)
+            .navigationTitle(viewModel.expenseObj == nil ? "New Transaction" : "Edit Transaction")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarLeading) {
-                    Button {
-                        haptics.mediumButtonTap()
-                        self.presentationMode.wrappedValue.dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly).disabled(viewModel.isSaving)
                 }
             }
-            .navigationTitle("💸 \(viewModel.getButtText())")
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    HapticsHelper.shared.hardButtonTap()
+                    Task { await viewModel.saveTransaction(managedObjectContext: managedObjectContext) }
+                } label: {
+                    Label(viewModel.expenseObj == nil ? "Add Transaction" : "Save Changes", systemImage: "checkmark")
+                        .frame(maxWidth: .infinity)
+                }
+                .primaryActionStyle()
+                .disabled(viewModel.isSaving || viewModel.isFetchingRate)
+                .padding(.horizontal, 20).padding(.vertical, 12)
+            }
         }
-        .onReceive(viewModel.$closePresenter) { close in
-            if close { self.presentationMode.wrappedValue.dismiss() }
+        .interactiveDismissDisabled(viewModel.isSaving)
+        .task(id: viewModel.rateRequestKey) { await viewModel.refreshRate() }
+        .sheet(isPresented: $showCurrencyPicker) {
+            CurrencyPickerView(selection: $viewModel.currency, title: "Transaction Currency").expenseSheetStyle()
         }
-        .alert(isPresented: $confirmDelete,
-               content: {
-            Alert(title: Text(APP_NAME), message: Text("Are you sure you want to delete this transaction?"),
-                  primaryButton: .destructive(Text("Delete")) {
-                viewModel.deleteTransaction(managedObjectContext: self.managedObjectContext)
-            }, secondaryButton: Alert.Button.cancel(Text("Cancel"), action: { confirmDelete = false })
-            )
-        })
-        .alert(isPresented: $viewModel.showAlert,
-               content: { Alert(title: Text(APP_NAME), message: Text(viewModel.alertMsg), dismissButton: .default(Text("OK"))) })
+        .sheet(isPresented: $showConversionPicker) {
+            CurrencyPickerView(selection: $viewModel.conversionCurrency, title: "Conversion Currency").expenseSheetStyle()
+        }
+        .sheet(isPresented: $showReceiptScanner) {
+            ReceiptImportView(editor: viewModel).expenseSheetStyle()
+        }
+        .onReceive(viewModel.$closePresenter) { if $0 { dismiss() } }
+        .confirmationDialog("Remove attachment?", isPresented: $showAttachmentRemoval, titleVisibility: .visible) {
+            Button("Remove", role: .destructive) { viewModel.removeImage() }
+        }
+        .alert("Unable to Save", isPresented: $viewModel.showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: { Text(viewModel.alertMsg) }
     }
 }
-
-//struct AddExpenseView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        AddExpenseView()
-//    }
-//}

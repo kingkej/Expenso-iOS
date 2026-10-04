@@ -6,82 +6,107 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct ExpenseSettingsView: View {
-    
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    // CoreData
-    @Environment(\.managedObjectContext) var managedObjectContext
-    
-    @ObservedObject private var viewModel = ExpenseSettingsViewModel()
-    @State private var selectCurrency = false
-    
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var managedObjectContext
+    @StateObject private var viewModel = ExpenseSettingsViewModel()
+    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
+    @AppStorage(AppAccent.storageKey) private var accentSelection = AppAccent.original.rawValue
+    @State private var proposedCurrency = CurrencySettings.base
+    @State private var showCurrencyPicker = false
+
     var body: some View {
-        NavigationView {
-            VStack {
-                HStack {
-                    TextView(text: "Enable \(viewModel.getBiometricType())", type: .button).foregroundColor(Color.text_primary_color)
-                    Spacer()
-                    Toggle("", isOn: $viewModel.enableBiometric)
-                        .toggleStyle(SwitchToggleStyle(tint: Color.main_color))
-                }.padding(8)
-                
-                Button(action: { selectCurrency = true }, label: {
-                    HStack {
-                        Spacer()
-                        TextView(text: "Currency - \(viewModel.currency)", type: .button).foregroundColor(Color.text_primary_color)
-                        Spacer()
-                    }
-                })
-                .navigationTitle("⚙️ Settings")
-                .toolbar {
-                    ToolbarItemGroup(placement: .navigationBarLeading) {
-                        Button {
-                            self.presentationMode.wrappedValue.dismiss()
-                        } label: {
-                            Image(systemName: "xmark")
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("Accent Color", selection: accentBinding) {
+                        ForEach(AppAccent.allCases) { accent in
+                            Label {
+                                Text(accent.title)
+                            } icon: {
+                                Image(systemName: "circle.fill")
+                                    .foregroundStyle(accent.color)
+                            }
+                            .tag(accent)
                         }
                     }
+                    .pickerStyle(.navigationLink)
+                } header: {
+                    Text("Appearance")
+                } footer: {
+                    Text("Personalize buttons, tabs and highlights. Changes apply immediately and are saved on this device.")
                 }
-                .frame(height: 25)
-                .padding().background(Color.secondary_color)
-                .cornerRadius(4)
-                .foregroundColor(Color.text_primary_color)
-                .accentColor(Color.text_primary_color)
-                .actionSheet(isPresented: $selectCurrency) {
-                    var buttons: [ActionSheet.Button] = CURRENCY_LIST.map { curr in
-                        ActionSheet.Button.default(Text(curr)) { viewModel.saveCurrency(currency: curr) }
+
+                Section {
+                    Toggle(isOn: $viewModel.enableBiometric) {
+                        Label("Enable \(viewModel.getBiometricType())", systemImage: "lock.shield")
                     }
-                    buttons.append(.cancel())
-                    return ActionSheet(title: Text("Select a currency"), buttons: buttons)
+                } header: {
+                    Text("Security")
+                } footer: {
+                    Text("Require authentication when opening \(APP_NAME).")
                 }
-                
-                Button(action: { viewModel.exportTransactions(moc: managedObjectContext) }, label: {
-                    HStack {
-                        Spacer()
-                        TextView(text: "Export transactions", type: .button).foregroundColor(Color.text_primary_color)
-                        Spacer()
+
+                Section {
+                    Button { showCurrencyPicker = true } label: {
+                        LabeledContent("Base Currency", value: proposedCurrency)
                     }
-                })
-                .frame(height: 25)
-                .padding().background(Color.secondary_color)
-                .cornerRadius(4)
-                .foregroundColor(Color.text_primary_color)
-                .accentColor(Color.text_primary_color)
-                
-                Spacer()
-                
-                HStack {
-                    Spacer()
-                    Button(action: { self.presentationMode.wrappedValue.dismiss() }, label: {
-                        Image("tick_icon").resizable().frame(width: 32.0, height: 32.0)
-                    }).padding().background(Color.main_color).cornerRadius(35)
+                    if proposedCurrency != baseCurrency {
+                        Button("Apply \(proposedCurrency)", systemImage: "checkmark") {
+                            Task { await viewModel.saveCurrency(currency: proposedCurrency, context: managedObjectContext) }
+                        }
+                    }
+                    if viewModel.isChangingCurrency { ProgressView("Preparing locked daily rates…") }
+                } header: { Text("Currencies") } footer: {
+                    Text("Totals use \(baseCurrency). New transactions default to this currency; each transaction can use another. Existing records are RUB. Changing base uses saved historical rates and never relabels original amounts. Missing historical quotes must be supplied manually by editing the transaction.")
+                }
+                .disabled(viewModel.isChangingCurrency)
+                Section("Exchange Rates") {
+                    Label("Daily rates • 24-hour cache", systemImage: "arrow.triangle.2.circlepath")
+                    Text("Only a date and currency reference are requested from the rate service. Transaction amounts, titles and notes are never sent. Saved transaction rates don't expire.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+
+                Section {
+                    Button {
+                        viewModel.exportTransactions(moc: managedObjectContext)
+                    } label: {
+                        Label("Export Transactions", systemImage: "square.and.arrow.up")
+                    }
+                } header: {
+                    Text("Data")
+                } footer: {
+                    Text("Share a CSV file containing your transactions.")
                 }
             }
-            .padding(.horizontal, 8).padding(.top, 1)
-            .alert(isPresented: $viewModel.showAlert,
-                   content: { Alert(title: Text(APP_NAME), message: Text(viewModel.alertMsg), dismissButton: .default(Text("OK"))) })
+            .scrollContentBackground(.hidden)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", systemImage: "xmark") { dismiss() }
+                        .labelStyle(.iconOnly).disabled(viewModel.isChangingCurrency)
+                }
+            }
+            .sheet(isPresented: $showCurrencyPicker) {
+                CurrencyPickerView(selection: $proposedCurrency, title: "Base Currency").expenseSheetStyle()
+            }
+            .interactiveDismissDisabled(viewModel.isChangingCurrency)
+            .alert(APP_NAME, isPresented: $viewModel.showAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.alertMsg)
+            }
         }
+    }
+
+    private var accentBinding: Binding<AppAccent> {
+        Binding(
+            get: { AppAccent.resolve(accentSelection) },
+            set: { accentSelection = $0.rawValue }
+        )
     }
 }
 
