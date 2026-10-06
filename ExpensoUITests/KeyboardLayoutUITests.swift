@@ -11,6 +11,14 @@ final class KeyboardLayoutUITests: XCTestCase {
     func testKeyboardLayoutDark() throws { try exerciseScreens(style: "Dark") }
 
     func testLocalClipboardReceiptReviewAndSave() throws {
+        try exerciseReceiptClipboardPaste(useTextSelectionMenu: false)
+    }
+
+    func testPNGReceiptPasteFromTextSelectionMenu() throws {
+        try exerciseReceiptClipboardPaste(useTextSelectionMenu: true)
+    }
+
+    private func exerciseReceiptClipboardPaste(useTextSelectionMenu: Bool) throws {
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
@@ -21,18 +29,25 @@ final class KeyboardLayoutUITests: XCTestCase {
         // Exercise the real image paste control and Vision recognizer, not a test-only screen.
         let previousClipboard = UIPasteboard.general.items
         defer { UIPasteboard.general.items = previousClipboard }
-        UIPasteboard.general.image = UIGraphicsImageRenderer(size: CGSize(width: 1200, height: 800)).image { context in
+        let receipt = UIGraphicsImageRenderer(size: CGSize(width: 1200, height: 800)).image { context in
             UIColor.white.setFill()
             context.fill(CGRect(x: 0, y: 0, width: 1200, height: 800))
             ("UI Coffee Sample\nTOTAL 125.00 RUB\n2026-10-05" as NSString).draw(
                 in: CGRect(x: 80, y: 100, width: 1040, height: 600),
                 withAttributes: [.font: UIFont.systemFont(ofSize: 64), .foregroundColor: UIColor.black])
         }
+        if useTextSelectionMenu {
+            UIPasteboard.general.setData(try XCTUnwrap(receipt.pngData()), forPasteboardType: "public.png")
+        } else {
+            UIPasteboard.general.image = receipt
+        }
         app.buttons["Add Transaction"].tap()
         app.buttons["Scan Receipt or Screenshot"].tap()
         let input = app.textViews["Transactions to import"]
         XCTAssertTrue(input.waitForExistence(timeout: 5))
-        pasteFromEditMenu(input, app: app)
+        input.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        pasteFromEditMenu(input, app: app, useTextSelectionMenu: useTextSelectionMenu)
         let transaction = app.navigationBars["Transaction"]
         let reviewOpened = transaction.waitForExistence(timeout: 45)
         if !reviewOpened, app.buttons["Details"].exists { app.buttons["Details"].tap() }
@@ -244,8 +259,10 @@ final class KeyboardLayoutUITests: XCTestCase {
     }
 
     private func pasteFromEditMenu(_ input: XCUIElement, app: XCUIApplication,
+                                   useTextSelectionMenu: Bool = false,
                                    file: StaticString = #filePath, line: UInt = #line) {
-        input.doubleTap()
+        if useTextSelectionMenu { input.press(forDuration: 1) }
+        else { input.doubleTap() }
         let menuItem = app.menuItems["Paste"].firstMatch
         if menuItem.waitForExistence(timeout: 2) { menuItem.tap() }
         else {
