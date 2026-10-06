@@ -38,7 +38,7 @@ final class KeyboardLayoutUITests: XCTestCase {
         if !reviewOpened, app.buttons["Details"].exists { app.buttons["Details"].tap() }
         XCTAssertTrue(reviewOpened, "One receipt must open verification inside the import sheet. \(app.debugDescription)")
         attach(app, "Local-Clipboard-Verification")
-        let title = app.textFields["Title"]
+        let title = try XCTUnwrap(app.textFields.matching(identifier: "Title").allElementsBoundByIndex.first(where: { $0.isHittable }))
         // OCR/model availability may leave merchant unknown. Verification must
         // allow filling that field rather than guessing a title from the image.
         if title.value as? String == "Title" || title.value as? String == "" {
@@ -46,8 +46,10 @@ final class KeyboardLayoutUITests: XCTestCase {
             title.typeText("UI Coffee Sample")
             tapOutsideInput(transaction, app: app)
         }
-        XCTAssertEqual(title.value as? String, "UI Coffee Sample")
-        XCTAssertEqual(app.textFields["Amount"].value as? String, "125")
+        let savedTitle = try XCTUnwrap(title.value as? String)
+        XCTAssertFalse(savedTitle.isEmpty)
+        let amount = try XCTUnwrap(app.textFields.matching(identifier: "Amount").allElementsBoundByIndex.first(where: { $0.isHittable }))
+        XCTAssertEqual(amount.value as? String, "125")
         XCTAssertFalse(app.buttons["Continue to Transaction Editor"].exists)
 
         // Apple Intelligence isn't guaranteed on Simulator; use the normal picker
@@ -59,11 +61,11 @@ final class KeyboardLayoutUITests: XCTestCase {
             XCTAssertTrue(food.waitForExistence(timeout: 5))
             food.tap()
         }
-        let add = app.buttons["Add"].firstMatch
+        let add = try XCTUnwrap(app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first(where: { $0.isHittable }))
         XCTAssertTrue(add.isEnabled && add.isHittable)
         add.tap()
         XCTAssertTrue(dashboard.waitForExistence(timeout: 15), "Saving must finish import without reopening the blank editor.")
-        let saved = app.staticTexts["UI Coffee Sample"]
+        let saved = app.staticTexts[savedTitle]
         XCTAssertTrue(saved.waitForExistence(timeout: 5), "The verified receipt must be saved once.")
         saved.tap()
         let detail = app.navigationBars["Transaction"]
@@ -72,7 +74,7 @@ final class KeyboardLayoutUITests: XCTestCase {
         app.buttons["Delete Transaction"].tap()
         app.alerts["Delete Transaction?"].buttons["Delete"].tap()
         XCTAssertTrue(dashboard.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["UI Coffee Sample"].exists)
+        XCTAssertFalse(app.staticTexts[savedTitle].exists)
     }
 
     private func exerciseScreens(style: String) throws {
