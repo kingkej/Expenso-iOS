@@ -8,51 +8,53 @@
 import SwiftUI
 
 struct AboutView: View {
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    
+    @Environment(\.dismiss) private var dismiss
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.primary_color.edgesIgnoringSafeArea(.all)
-                
-                VStack {
-                    ToolbarModelView(title: "About") { self.presentationMode.wrappedValue.dismiss() }
-                    
-                    Spacer().frame(height: 80)
-                    
-                    Image("pie_icon").resizable().frame(width: 120.0, height: 120.0)
-                    TextView(text: "\(APP_NAME)", type: .h6).foregroundColor(Color.text_primary_color).padding(.top, 20)
-                    TextView(text: "v\(Bundle.main.infoDictionary!["CFBundleShortVersionString"] ?? "")", type: .body_2)
-                        .foregroundColor(Color.text_secondary_color).padding(.top, 2)
-                    
-                    VStack(spacing: 20) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack { Spacer() }
-                            TextView(text: "ATTRIBUTIONS & LICENSE", type: .overline).foregroundColor(Color.text_primary_color)
-                            TextView(text: "Licensed Under Apache License 2.0", type: .body_2)
-                                .foregroundColor(Color.text_secondary_color).padding(.top, 2)
+        NavigationStack {
+            ExpenseForm {
+                Section {
+                    VStack(spacing: 12) {
+                        Image(systemName: "chart.pie.fill")
+                            .font(.system(size: 64))
+                            .foregroundStyle(.tint)
+                            .accessibilityHidden(true)
+                        Text(APP_NAME)
+                            .font(.title2.bold())
+                        Text("Version \(appVersion)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+                }
+
+                Section("Attributions & License") {
+                    Label("Apache License 2.0", systemImage: "doc.text")
+                }
+
+                Section("Visit") {
+                    if let url = URL(string: APP_LINK) {
+                        Link(destination: url) {
+                            Label("View Source on GitHub", systemImage: "arrow.up.right.square")
                         }
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack { Spacer() }
-                            TextView(text: "VISIT", type: .overline).foregroundColor(Color.text_primary_color)
-                            TextView(text: "\(APP_LINK)", type: .body_2)
-                                .foregroundColor(Color.main_color).padding(.top, 2)
-                                .onTapGesture {
-                                    if let url: URL = URL(string: APP_LINK) {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }
-                        }
-                    }.padding(20)
-                    
-                    Spacer()
-                }.edgesIgnoringSafeArea(.all)
+                    }
+                }
             }
-            .navigationBarHidden(true)
+            .expenseScreenChrome()
+            .navigationTitle("About")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", systemImage: "xmark") { dismiss() }
+                        .labelStyle(.iconOnly)
+                }
+            }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .navigationBarHidden(true)
-        .navigationBarBackButtonHidden(true)
     }
 }
 

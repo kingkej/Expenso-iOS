@@ -30,6 +30,9 @@ public class ExpenseCD: NSManagedObject, Identifiable {
     @NSManaged public var note: String?
     @NSManaged public var amount: Double
     @NSManaged public var imageAttached: Data?
+    @NSManaged public var currencyCode: String?
+    @NSManaged public var amountText: String?
+    @NSManaged public var rateSnapshotData: Data?
 }
 
 extension ExpenseCD {

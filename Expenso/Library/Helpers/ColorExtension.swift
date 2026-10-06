@@ -7,6 +7,46 @@
 
 import SwiftUI
 
+enum AppAccent: String, CaseIterable, Identifiable {
+    static let storageKey = "appearance.accentColor"
+
+    case original, indigo, purple, pink, teal, green, orange
+
+    var id: String { rawValue }
+
+    var title: String {
+        self == .original ? "Default (Blue)" : rawValue.capitalized
+    }
+
+    var color: Color {
+        switch self {
+        // The existing AccentColor asset is empty, so the app uses system blue.
+        case .original: return .blue
+        case .indigo: return .indigo
+        case .purple: return .purple
+        case .pink: return .pink
+        case .teal: return .teal
+        case .green: return .green
+        case .orange: return .orange
+        }
+    }
+
+    static func resolve(_ storedValue: String) -> AppAccent {
+        AppAccent(rawValue: storedValue) ?? .original
+    }
+}
+
+private struct AppAccentColorKey: EnvironmentKey {
+    static let defaultValue = AppAccent.original.color
+}
+
+extension EnvironmentValues {
+    var appAccentColor: Color {
+        get { self[AppAccentColorKey.self] }
+        set { self[AppAccentColorKey.self] = newValue }
+    }
+}
+
 extension Color {
     
     static let main_color = Color("main_color")

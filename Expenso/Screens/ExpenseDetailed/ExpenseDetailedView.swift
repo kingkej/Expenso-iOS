@@ -1,117 +1,106 @@
-//
-//  ExpenseDetailedView.swift
-//  Expenso
-//
-//  Created by Sameer Nawaz on 31/01/21.
-//
-
 import SwiftUI
+import CoreData
 
 struct ExpenseDetailedView: View {
-    
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    // CoreData
-    @Environment(\.managedObjectContext) var managedObjectContext
-    
-    @ObservedObject private var viewModel: ExpenseDetailedViewModel
-    @AppStorage(UD_EXPENSE_CURRENCY) var CURRENCY: String = ""
-    
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var managedObjectContext
+    @EnvironmentObject private var ledgerMutations: LedgerMutationService
+    @StateObject private var viewModel: ExpenseDetailedViewModel
+    @ObservedObject private var expense: ExpenseCD
+    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
+    @AppStorage(CategoryCatalog.storageKey) private var categoryData = Data()
     @State private var confirmDelete = false
-    
-    init(expenseObj: ExpenseCD) {
-        viewModel = ExpenseDetailedViewModel(expenseObj: expenseObj)
-    }
     @State private var expenseToEdit: ExpenseCD?
-    let haptics = HapticsHelper.shared
-    
+
+    init(expenseObj: ExpenseCD) {
+        _viewModel = StateObject(wrappedValue: ExpenseDetailedViewModel(expenseObj: expenseObj))
+        _expense = ObservedObject(wrappedValue: expenseObj)
+    }
+
     var body: some View {
-        NavigationView {
-            VStack {
-                ScrollView(showsIndicators: false) {
-                    
-                    VStack(spacing: 24) {
-                        ExpenseDetailedListView(title: "Title", description: viewModel.expenseObj.title ?? "")
-                        ExpenseDetailedListView(title: "Amount", description: "\(CURRENCY)\(viewModel.expenseObj.amount)")
-                        ExpenseDetailedListView(title: "Transaction type", description: viewModel.expenseObj.type == TRANS_TYPE_INCOME ? "Income" : "Expense" )
-                        ExpenseDetailedListView(title: "Tag", description: getTransTagTitle(transTag: viewModel.expenseObj.tag ?? ""))
-                        ExpenseDetailedListView(title: "When", description: getDateFormatter(date: viewModel.expenseObj.occuredOn, format: "EEEE, dd MMM hh:mm a"))
-                        if let note = viewModel.expenseObj.note, note != "" {
-                            ExpenseDetailedListView(title: "Note", description: note)
+        NavigationStack {
+            ExpenseForm {
+                if !expense.isDeleted {
+                    Section("Transaction") {
+                        ExpenseValueRow(title: "Title") { Text(expense.title ?? "") }
+                        ExpenseValueRow(title: "Original Amount") { Text(expense.originalAmountLabel) }
+                        if expense.originalCurrency != baseCurrency {
+                            ExpenseValueRow(title: "In \(baseCurrency)") { Text(expense.convertedAmountLabel(in: baseCurrency)) }
                         }
-                        if let data = viewModel.expenseObj.imageAttached {
-                            VStack(spacing: 8) {
-                                HStack { TextView(text: "Attachment", type: .caption).foregroundColor(Color.init(hex: "828282")); Spacer() }
-                                Image(uiImage: UIImage(data: data)!)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(height: 250).frame(maxWidth: .infinity)
-                                    .background(Color.secondary_color)
-                                    .cornerRadius(4)
+                        if let snapshot = expense.lockedRates {
+                            DisclosureGroup("Exchange rate details") {
+                                ExpenseValueRow(title: "Rate date") { Text(snapshot.date) }
+                                ExpenseValueRow(title: "Source") { Text(snapshot.displaySource) }
+                                if expense.originalCurrency != baseCurrency,
+                                   let rate = try? snapshot.rate(from: expense.originalCurrency, to: baseCurrency) {
+                                    Text("1 \(expense.originalCurrency) = \(Money.string(rate)) \(baseCurrency)")
+                                        .font(.footnote).foregroundStyle(.secondary)
+                                }
+                            }
+                            if let notice = snapshot.approximationNotice {
+                                Label(notice, systemImage: "exclamationmark.triangle")
+                                    .font(.footnote).foregroundStyle(.secondary)
                             }
                         }
-                    }.padding(16)
-                    
-                    Spacer().frame(height: 24)
-                    Spacer()
+                        ExpenseValueRow(title: "Type") { Text(expense.type == TRANS_TYPE_INCOME ? "Income" : "Expense") }
+                        ExpenseValueRow(title: "Category") {
+                            Text(CategoryCatalog.decode(categoryData).first { $0.id == expense.tag }?.name
+                                ?? getTransTagTitle(transTag: expense.tag ?? ""))
+                        }
+                        ExpenseValueRow(title: "Date") { Text(getDateFormatter(date: expense.occuredOn, format: "EEE, dd MMM yyyy, hh:mm a")) }
+                    }
+                    if let note = expense.note, !note.isEmpty {
+                        Section("Note") { Text(note).textSelection(.enabled) }
+                    }
+                    if let data = expense.imageAttached, let image = UIImage(data: data) {
+                        Section("Attachment") {
+                            Image(uiImage: image).resizable().scaledToFit()
+                                .frame(maxHeight: 320)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .accessibilityLabel("Transaction attachment")
+                        }
+                    }
                 }
-                .alert(isPresented: $confirmDelete,
-                       content: {
-                    Alert(title: Text(APP_NAME), message: Text("Are you sure you want to delete this transaction?"),
-                          primaryButton: .destructive(Text("Delete")) {
-                        viewModel.deleteNote(managedObjectContext: managedObjectContext)
-                    }, secondaryButton: Alert.Button.cancel(Text("Cancel"), action: { confirmDelete = false })
-                    )
-                })
             }
-            .navigationTitle("Details")
+            .expenseScreenChrome()
+            .navigationTitle("Transaction")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        haptics.mediumButtonTap()
-                        presentationMode.wrappedValue.dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly)
                 }
-                
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button {
-                        haptics.mediumButtonTap()
-                        expenseToEdit = viewModel.expenseObj
-                    } label: {
-                        Image(systemName: "pencil")
-                    }
-                    
-                    Button {
-                        haptics.mediumButtonTap()
-                        confirmDelete = true
-                    } label: {
-                        Image(systemName: "trash")
-                    }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Edit", systemImage: "pencil") { expenseToEdit = expense }.labelStyle(.iconOnly)
+                        .disabled(expense.isDeleted || expense.managedObjectContext == nil)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Share", systemImage: "square.and.arrow.up") { viewModel.shareNote() }
+                        Button("Delete Transaction", systemImage: "trash", role: .destructive) { confirmDelete = true }
+                    } label: { Label("More", systemImage: "ellipsis") }
+                    .disabled(expense.isDeleted || expense.managedObjectContext == nil)
                 }
             }
-            .sheet(item: $expenseToEdit) { expense in
-                AddExpenseView(viewModel: AddExpenseViewModel(expenseObj: viewModel.expenseObj))
+            .sheet(item: $expenseToEdit) { item in
+                AddExpenseView(viewModel: AddExpenseViewModel(expenseObj: item)).expenseSheetStyle(.editor)
             }
+            .alert("Delete Transaction?", isPresented: $confirmDelete) {
+                Button("Delete", role: .destructive) {
+                    do {
+                        try ledgerMutations.delete(ids: [expense.objectID], context: managedObjectContext)
+                        dismiss()
+                    } catch {
+                        viewModel.alertMsg = error.localizedDescription
+                        viewModel.showAlert = true
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: { Text("You can undo recent changes from Dashboard or History while the app stays open.") }
+            .alert("Unable to Delete", isPresented: $viewModel.showAlert) {
+                Button("OK", role: .cancel) { }
+            } message: { Text(viewModel.alertMsg) }
         }
+        .onReceive(viewModel.$closePresenter) { if $0 { dismiss() } }
     }
 }
-
-struct ExpenseDetailedListView: View {
-    
-    var title: String
-    var description: String
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack { TextView(text: title, type: .caption).foregroundColor(Color.init(hex: "828282")); Spacer() }
-            HStack { TextView(text: description, type: .body_1).foregroundColor(Color.text_primary_color); Spacer() }
-        }
-    }
-}
-
-//struct ExpenseDetailedView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ExpenseDetailedView()
-//    }
-//}

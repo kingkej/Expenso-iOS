@@ -6,55 +6,52 @@
 //
 
 import SwiftUI
-import LocalAuthentication
 
 struct AuthenticateView: View {
-        
-    @ObservedObject var viewModel: AuthenticationViewModel
-    
+    @StateObject private var viewModel = AuthenticationViewModel()
+    @State private var didRequestAuthentication = false
+
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.primary_color.edgesIgnoringSafeArea(.all)
-                
-                VStack {
-                    NavigationLink(destination: NavigationLazyView(ExpenseView()), isActive: $viewModel.didAuthenticate, label: {})
-                    Spacer()
-                    Image("pie_icon").resizable().frame(width: 120.0, height: 120.0)
-                    VStack(spacing: 16) {
-                        TextView(text: "\(APP_NAME) is locked", type: .body_1).foregroundColor(Color.text_primary_color).padding(.top, 20)
-                        Button(action: { viewModel.authenticate() }, label: {
-                            HStack {
-                                Spacer()
-                                TextView(text: "Unlock", type: .button).foregroundColor(Color.main_color)
-                                Spacer()
+        Group {
+            if viewModel.didAuthenticate {
+                ExpensoTabView()
+            } else {
+                NavigationStack {
+                    ScrollView {
+                        ContentUnavailableView {
+                            Label("\(APP_NAME) is Locked", systemImage: "lock.shield.fill")
+                        } description: {
+                            Text("Authenticate to view your transactions.")
+                        } actions: {
+                            Button("Unlock", systemImage: "lock.open") {
+                                viewModel.authenticate()
                             }
-                        })
-                        .frame(height: 25)
-                        .padding().background(Color.secondary_color)
-                        .cornerRadius(4)
-                        .foregroundColor(Color.text_primary_color)
-                        .accentColor(Color.text_primary_color)
-                    }.padding(.horizontal)
-                    Spacer()
+                            .primaryActionStyle()
+                            .controlSize(.large)
+                        }
+                        .padding(.vertical, 48)
+                    }
+                    .background(Color(uiColor: .systemGroupedBackground))
+                    .navigationTitle(APP_NAME)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .alert("Unable to Unlock", isPresented: $viewModel.showAlert) {
+                        Button("OK", role: .cancel) { }
+                    } message: {
+                        Text(viewModel.alertMessage)
+                    }
                 }
-                .edgesIgnoringSafeArea(.all)
-                .onAppear(perform: viewModel.authenticate)
             }
-            .navigationBarHidden(true)
         }
-        .onAppear(perform: {
+        .onAppear {
+            guard !didRequestAuthentication, !viewModel.didAuthenticate else { return }
+            didRequestAuthentication = true
             viewModel.authenticate()
-        })
-        .navigationViewStyle(StackNavigationViewStyle())
-        .navigationBarHidden(true)
-        .navigationBarBackButtonHidden(true)
+        }
     }
-    
 }
 
 struct AuthenticateView_Previews: PreviewProvider {
     static var previews: some View {
-        AuthenticateView(viewModel: AuthenticationViewModel())
+        AuthenticateView()
     }
 }
