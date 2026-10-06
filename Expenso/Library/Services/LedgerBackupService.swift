@@ -143,12 +143,25 @@ enum LedgerBackupService {
         return root.appendingPathComponent("LedgerRecovery", isDirectory: true)
     }
 
-    static func latestRecovery(defaults: UserDefaults = .standard) throws -> URL? {
+    static func latestRecovery(defaults: UserDefaults = .standard, recoveryDirectory: URL? = nil) throws -> URL? {
         guard let filename = defaults.string(forKey: recoveryFilenameKey),
-              filename.hasPrefix("Recovery-"), filename.hasSuffix(".expenso"),
-              !filename.contains("/"), !filename.contains("..") else { return nil }
-        let url = try recoveryDirectory().appendingPathComponent(filename)
-        return FileManager.default.fileExists(atPath: url.path) ? url : nil
+              let url = managedRecovery(filename: filename,
+                  directory: try recoveryDirectory ?? self.recoveryDirectory()),
+              isRegularRecovery(url) else { return nil }
+        return url
+    }
+
+    private static func managedRecovery(filename: String, directory: URL) -> URL? {
+        let prefix = "Recovery-"
+        let suffix = ".expenso"
+        guard filename.hasPrefix(prefix), filename.hasSuffix(suffix),
+              UUID(uuidString: String(filename.dropFirst(prefix.count).dropLast(suffix.count))) != nil else { return nil }
+        return directory.standardizedFileURL.appendingPathComponent(filename)
+    }
+
+    private static func isRegularRecovery(_ url: URL) -> Bool {
+        guard let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]) else { return false }
+        return values.isRegularFile == true && values.isSymbolicLink != true
     }
 
     static func capture(context: NSManagedObjectContext, defaults: UserDefaults = .standard) throws -> LedgerBackupPayload {
@@ -177,7 +190,20 @@ enum LedgerBackupService {
         } else {
             recovery = try await LedgerBackupIO.shared.writeRecovery(before, directory: directory)
         }
-        defaults.set(recovery.lastPathComponent, forKey: recoveryFilenameKey)
+        // Only publish an archive owned by this recovery directory. A failed
+        // writer must not hide the previous usable recovery or prune its file.
+        guard let managed = managedRecovery(filename: recovery.lastPathComponent, directory: directory),
+              managed == recovery.standardizedFileURL, isRegularRecovery(managed) else {
+            throw LedgerBackupError.invalidFile
+        }
+        let previousFilename = defaults.string(forKey: recoveryFilenameKey)
+        defaults.set(managed.lastPathComponent, forKey: recoveryFilenameKey)
+        // The newest complete recovery survives cancellation or a later save
+        // failure. Prune just the old pointer, never arbitrary directory files.
+        if let previousFilename, let previous = managedRecovery(filename: previousFilename, directory: directory),
+           previous != managed, isRegularRecovery(previous) {
+            try? FileManager.default.removeItem(at: previous)
+        }
         try Task.checkCancellation()
         let latest = try capture(context: context, defaults: defaults)
         guard before.records == latest.records, before.preferences == latest.preferences else {

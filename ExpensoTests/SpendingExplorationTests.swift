@@ -3,6 +3,14 @@ import Foundation
 import Testing
 @testable import Expenso
 
+@MainActor
+private final class ExplorationKeyFixture: OpenRouterKeyStore {
+    private var value: String?
+    func read() throws -> String? { value }
+    func save(_ value: String) throws { self.value = value }
+    func delete() throws { value = nil }
+}
+
 /// Integration tests use an isolated in-memory ledger and disposable metadata, never AI or the real ledger.
 @Suite("Read-only conversational ledger exploration")
 @MainActor
@@ -11,8 +19,10 @@ struct SpendingExplorationTests {
         let ledger = try CurrencyTestStore()
         let name = "SpendingExplorationTests." + UUID().uuidString
         let defaults = try #require(UserDefaults(suiteName: name))
+        let settings = OpenRouterSettings(defaults: defaults, keychain: ExplorationKeyFixture())
         let metadata = SpendingClassificationStore(defaults: defaults, fileURL: FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString).appendingPathComponent("types.json"))
+            .appendingPathComponent(UUID().uuidString).appendingPathComponent("types.json"),
+            settings: settings, completion: { _, _, _ in throw OpenRouterError.malformed })
         return (ledger, SpendingDataStore(context: ledger.context, baseCurrency: "RUB",
             categoryDefaults: defaults, classifications: metadata), defaults, name)
     }

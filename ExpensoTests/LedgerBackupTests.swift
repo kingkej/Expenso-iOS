@@ -81,9 +81,12 @@ struct LedgerBackupTests {
         #expect(preferences.defaults.string(forKey: AppAccent.storageKey) == AppAccent.teal.rawValue)
         #expect(!target.context.hasChanges)
         // Restoring again replaces rather than appends/duplicates the same archive.
-        try await LedgerBackupService.restore(payload, context: target.context,
+        let secondRecovery = try await LedgerBackupService.restore(payload, context: target.context,
             defaults: preferences.defaults, recoveryDirectory: root)
         #expect(try LedgerStoreTransaction.records(in: target.context).count == 1)
+        #expect(!FileManager.default.fileExists(atPath: recovery.path))
+        #expect(try LedgerBackupService.latestRecovery(defaults: preferences.defaults, recoveryDirectory: root) == secondRecovery)
+        #expect(try LedgerBackupCodec.decode(Data(contentsOf: secondRecovery)).records.count == 1)
     }
 
     @Test("An edit saved while recovery is preparing prevents replacement")
@@ -95,19 +98,22 @@ struct LedgerBackupTests {
         try store.context.save()
         let payload = try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults)
         let root = directory()
+        defer { try? FileManager.default.removeItem(at: root) }
         // Intentional Core Data integration with mocked recovery IO as the suspension boundary.
         do {
             try await LedgerBackupService.restore(payload, context: store.context, defaults: preferences.defaults,
-                recoveryDirectory: root, recoveryWriter: { _, directory in
+                recoveryDirectory: root, recoveryWriter: { before, directory in
+                    let recovery = try await LedgerBackupIO.shared.writeRecovery(before, directory: directory)
                     record.note = "A saved intervening edit"
                     try store.context.save()
-                    return directory.appendingPathComponent("Recovery-fixture.expenso")
+                    return recovery
                 })
             Issue.record("Restore should reject an intervening saved edit")
         } catch LedgerBackupError.ledgerChanged { }
         #expect(record.note == "A saved intervening edit")
         #expect(try LedgerStoreTransaction.records(in: store.context).count == 1)
         #expect(!store.context.hasChanges)
+        #expect(try LedgerBackupService.latestRecovery(defaults: preferences.defaults, recoveryDirectory: root) != nil)
     }
 
     @Test("Cancellation after recovery preparation leaves the current ledger intact")
@@ -119,17 +125,86 @@ struct LedgerBackupTests {
         try store.context.save()
         let payload = try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults)
         let root = directory()
+        defer { try? FileManager.default.removeItem(at: root) }
         let task = Task { @MainActor in
             try await LedgerBackupService.restore(payload, context: store.context, defaults: preferences.defaults,
-                recoveryDirectory: root, recoveryWriter: { _, directory in
+                recoveryDirectory: root, recoveryWriter: { before, directory in
+                    let recovery = try await LedgerBackupIO.shared.writeRecovery(before, directory: directory)
                     withUnsafeCurrentTask { $0?.cancel() }
-                    return directory.appendingPathComponent("Recovery-fixture.expenso")
+                    return recovery
                 })
         }
         do { _ = try await task.value; Issue.record("Restore should honor cancellation before writing") }
         catch is CancellationError { }
         #expect(try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults).records == payload.records)
         #expect(!store.context.hasChanges)
+        #expect(try LedgerBackupService.latestRecovery(defaults: preferences.defaults, recoveryDirectory: root) != nil)
+    }
+
+    @Test("A failed recovery write preserves the previous reachable archive")
+    func previousRecoverySurvivesWriteFailure() async throws {
+        let store = try CurrencyTestStore()
+        let preferences = try BackupTestPreferences()
+        defer { preferences.cleanup() }
+        _ = try fixture(store)
+        try store.context.save()
+        let before = try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults)
+        let root = directory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let previous = try await LedgerBackupIO.shared.writeRecovery(before, directory: root)
+        preferences.defaults.set(previous.lastPathComponent, forKey: LedgerBackupService.recoveryFilenameKey)
+        do {
+            try await LedgerBackupService.restore(before, context: store.context, defaults: preferences.defaults,
+                recoveryDirectory: root, recoveryWriter: { _, _ in throw CocoaError(.fileWriteNoPermission) })
+            Issue.record("A failed recovery write must stop restore")
+        } catch { }
+        #expect(try LedgerBackupService.latestRecovery(defaults: preferences.defaults, recoveryDirectory: root) == previous)
+        #expect(try LedgerBackupCodec.decode(Data(contentsOf: previous)) == before)
+        #expect(try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults).records == before.records)
+    }
+
+    @Test("Recovery pruning preserves unrelated files and symlinks", arguments: [false, true])
+    func recoveryPrunesOnlyManagedFiles(_ symlink: Bool) async throws {
+        let store = try CurrencyTestStore()
+        let preferences = try BackupTestPreferences()
+        defer { preferences.cleanup() }
+        let payload = try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults)
+        let root = directory()
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let unrelated = root.appendingPathComponent("Unrelated.expenso")
+        let bytes = Data("Keep this file".utf8)
+        try bytes.write(to: unrelated)
+        let old = root.appendingPathComponent(symlink ? "Recovery-\(UUID().uuidString).expenso" : "Recovery-personal.expenso")
+        if symlink {
+            try FileManager.default.createSymbolicLink(at: old, withDestinationURL: unrelated)
+        } else { try bytes.write(to: old) }
+        preferences.defaults.set(old.lastPathComponent, forKey: LedgerBackupService.recoveryFilenameKey)
+        let recovery = try await LedgerBackupService.restore(payload, context: store.context,
+            defaults: preferences.defaults, recoveryDirectory: root)
+        #expect(try Data(contentsOf: old) == bytes)
+        #expect(try Data(contentsOf: unrelated) == bytes)
+        #expect(try LedgerBackupService.latestRecovery(defaults: preferences.defaults, recoveryDirectory: root) == recovery)
+    }
+
+    @Test("An injected writer cannot publish an archive outside the recovery directory")
+    func recoveryWriterOutsideDirectory() async throws {
+        let store = try CurrencyTestStore()
+        let preferences = try BackupTestPreferences()
+        defer { preferences.cleanup() }
+        let payload = try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults)
+        let root = directory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let previous = try await LedgerBackupIO.shared.writeRecovery(payload, directory: root)
+        preferences.defaults.set(previous.lastPathComponent, forKey: LedgerBackupService.recoveryFilenameKey)
+        let outside = try await LedgerBackupIO.shared.writeRecovery(payload, directory: root.appendingPathComponent("Other"))
+        do {
+            try await LedgerBackupService.restore(payload, context: store.context, defaults: preferences.defaults,
+                recoveryDirectory: root, recoveryWriter: { _, _ in outside })
+            Issue.record("An outside recovery file must not be published")
+        } catch LedgerBackupError.invalidFile { }
+        #expect(try LedgerBackupService.latestRecovery(defaults: preferences.defaults, recoveryDirectory: root) == previous)
+        #expect(FileManager.default.fileExists(atPath: outside.path))
     }
 
     @Test("Malformed/future archives and duplicate snapshot IDs fail before writing")
@@ -246,5 +321,8 @@ struct LedgerBackupTests {
         #expect(try LedgerStoreTransaction.records(in: context).count == 1)
         #expect(try LedgerStoreTransaction.records(in: context).first?.title == "Existing SQLite row")
         #expect(!context.hasChanges)
+        let recovery = try #require(try LedgerBackupService.latestRecovery(defaults: preferences.defaults,
+            recoveryDirectory: root.appendingPathComponent("Recovery")))
+        #expect(try LedgerBackupCodec.decode(Data(contentsOf: recovery)).records == before.records)
     }
 }

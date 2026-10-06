@@ -865,6 +865,67 @@ struct OpenRouterSpendingTests {
     }
 
     @available(iOS 26, *)
+    @Test("Deleting unrelated history preserves an in-flight answer and follow-up context", arguments: [false, true])
+    func unrelatedHistoryDeletion(_ failsToSave: Bool) async throws {
+        let fixture = try ChatSettingsFixture()
+        defer { fixture.dispose() }
+        try fixture.enable()
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let archive = directory.appendingPathComponent("archive")
+        let preserved = directory.appendingPathComponent("preserved")
+        let file = archive.appendingPathComponent("history.json")
+        let history = SpendingChatHistoryStore(fileURL: file)
+        let unrelated = SavedSpendingConversation(id: UUID(), provider: .openRouter,
+            createdAt: Date(), updatedAt: Date(), messages: [.init(role: .user, text: "Older chat", reports: [])])
+        #expect(history.upsert(unrelated))
+        let ledger = try CurrencyTestStore()
+        let classifications = SpendingClassificationStore(defaults: fixture.defaults,
+            fileURL: directory.appendingPathComponent("types.json"), settings: fixture.settings,
+            completion: { _, _, _ in throw OpenRouterError.malformed })
+        var calls = 0
+        var model: SpendingChatModel!
+        let engine = OpenRouterSpendingChatModel(settings: fixture.settings,
+            store: SpendingDataStore(context: ledger.context, baseCurrency: "RUB",
+                categoryDefaults: fixture.defaults, classifications: classifications)) { _, _, messages, _ in
+                calls += 1
+                if calls == 1 {
+                    let messageIDs = model.messages.map(\.id)
+                    #expect(model.isGenerating)
+                    if failsToSave {
+                        try FileManager.default.moveItem(at: archive, to: preserved)
+                        try Data("blocked".utf8).write(to: archive)
+                    }
+                    #expect(model.deleteConversation(unrelated.id) == !failsToSave)
+                    #expect(model.isGenerating && model.messages.map(\.id) == messageIDs)
+                    #expect(history.conversations.contains { $0.id == unrelated.id } == failsToSave)
+                    if failsToSave {
+                        #expect(history.errorMessage != nil)
+                        try FileManager.default.removeItem(at: archive)
+                        try FileManager.default.moveItem(at: preserved, to: archive)
+                    }
+                    return .init(role: "assistant", content: "First answer")
+                }
+                #expect(messages.contains { $0.role == "user" && $0.content == "First question" })
+                #expect(messages.contains { $0.role == "assistant" && $0.content == "First answer" })
+                return .init(role: "assistant", content: "Follow-up answer")
+            }
+        model = SpendingChatModel(historyStore: history, settings: fixture.settings, remoteEngine: engine)
+        model.send("First question")
+        await engine.generationTask?.value
+        #expect(model.messages.last?.text == "First answer" && !model.isGenerating)
+        let activeID = try #require(history.conversations.first { $0.id != unrelated.id }?.id)
+        model.send("Follow-up question")
+        await engine.generationTask?.value
+        #expect(calls == 2 && model.messages.last?.text == "Follow-up answer")
+        #expect(!model.messages.contains { $0.role == .notice })
+        let reloaded = SpendingChatHistoryStore(fileURL: file)
+        #expect(reloaded.errorMessage == nil)
+        #expect(reloaded.conversations.first { $0.id == activeID }?.messages.map(\.id) == model.messages.map(\.id))
+        #expect(reloaded.conversations.contains { $0.id == unrelated.id } == failsToSave)
+    }
+
+    @available(iOS 26, *)
     @Test("A late answer cannot resurrect history deleted during an in-flight request")
     func deletionDuringAnswer() async throws {
         let fixture = try ChatSettingsFixture()

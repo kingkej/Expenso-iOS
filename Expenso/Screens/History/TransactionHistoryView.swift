@@ -174,6 +174,7 @@ struct TransactionHistoryView: View {
     @State private var displayGeneration = UUID()
     @State private var filterGeneration = UUID()
     @State private var preparingRows = false
+    @State private var rebuildingDisplayRows = false
     @State private var calendarAnchor = LedgerCalendarAnchor()
     @State private var formattingLocaleID = Locale.current.identifier
 
@@ -190,7 +191,7 @@ struct TransactionHistoryView: View {
                 LabeledContent("Net Cash Flow", value: totalLabel(totals.netCashFlow))
             } header: { Text("Filtered Totals · \(baseCurrency)") } footer: {
                 VStack(alignment: .leading, spacing: 6) {
-                    if totals.income == nil || totals.expense == nil {
+                    if !preparingRows && (totals.income == nil || totals.expense == nil) {
                         Text("Some transactions need an amount or exchange rate before totals are available.")
                     }
                     if totals.excludedUnknownTypes > 0 {
@@ -370,6 +371,7 @@ struct TransactionHistoryView: View {
             let liveIDs = Set(projections.map(\.id))
             if let detail, !liveIDs.contains(detail.id) || detail.expense.isDeleted || detail.expense.isFault { self.detail = nil }
         } catch {
+            rebuildingDisplayRows = false
             preparingRows = false
             errorMessage = error.localizedDescription
         }
@@ -386,6 +388,7 @@ struct TransactionHistoryView: View {
         let locale = Locale.current
         // Do not show old-currency amounts under the newly selected currency.
         preparingRows = true
+        rebuildingDisplayRows = true
         allRows = []
         rows = []
         totals = HistoryFilteredTotals(income: nil, expense: nil, netCashFlow: nil)
@@ -404,11 +407,14 @@ struct TransactionHistoryView: View {
             } onCancel: { work.cancel() }
             guard !Task.isCancelled, displayGeneration == generation, let result else { return }
             allRows = result
+            rebuildingDisplayRows = false
             applyFilters()
         }
     }
 
     private func applyFilters(debounce: Bool = false) {
+        // The pending rebuild applies the latest filter after publishing its snapshot.
+        guard !rebuildingDisplayRows else { return }
         filterTask?.cancel()
         let generation = UUID()
         filterGeneration = generation
@@ -443,7 +449,8 @@ struct TransactionHistoryView: View {
     }
 
     private func totalLabel(_ value: Decimal?) -> String {
-        value.map { Money.format($0, currency: baseCurrency) } ?? "Unavailable"
+        if preparingRows { return "Loading…" }
+        return value.map { Money.format($0, currency: baseCurrency) } ?? "Unavailable"
     }
 
     private func presentDetails(_ id: NSManagedObjectID) {

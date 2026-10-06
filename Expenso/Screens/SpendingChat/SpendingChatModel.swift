@@ -940,8 +940,10 @@ final class SpendingChatModel {
 
     @discardableResult
     func deleteConversation(_ id: UUID) -> Bool {
-        stop()
+        let isActive = active.values.contains(where: { $0.id == id })
+        if isActive { stop() }
         guard historyStore.delete(id: id) else { return false }
+        // Stopping may save a separate continuation after another window edits history.
         if active.values.contains(where: { $0.id == id }) { clearEngines() }
         return true
     }
