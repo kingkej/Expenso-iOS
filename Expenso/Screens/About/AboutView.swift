@@ -16,7 +16,7 @@ struct AboutView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            ExpenseForm {
                 Section {
                     VStack(spacing: 12) {
                         Image(systemName: "chart.pie.fill")
@@ -31,7 +31,6 @@ struct AboutView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
-                    .listRowBackground(Color.clear)
                 }
 
                 Section("Attributions & License") {
@@ -46,7 +45,7 @@ struct AboutView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .expenseScreenChrome()
             .navigationTitle("About")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

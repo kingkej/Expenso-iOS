@@ -20,10 +20,28 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.expenso.ledger-backup</string>
+			<key>UTTypeDescription</key>
+			<string>Expenso Ledger Backup</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>public.json</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array><string>expenso</string></array>
+			</dict>
+		</dict>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Your camera scans receipts and attaches images to transactions. Receipt text is processed on this device.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Face ID is used to authenticate user into app</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Optional motion reflections use device tilt to gently shift decorative highlights. Motion data is not saved or shared.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Photo library is used to attach media files to your transactions</string>
 	<key>NSPhotoLibraryUsageDescription</key>

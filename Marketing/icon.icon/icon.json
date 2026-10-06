@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.81812,0.24316,0.23773,1.00000",
-      "display-p3:0.24347,0.04361,0.61752,1.00000"
+      "display-p3:0.00000,0.00000,0.00000,1.00000",
+      "display-p3:0.08000,0.08000,0.09000,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -20,25 +20,13 @@
       "layers" : [
         {
           "blend-mode" : "normal",
-          "fill" : {
-            "linear-gradient" : [
-              "display-p3:0.44967,0.44967,0.44967,1.00000",
-              "display-p3:0.00000,0.00000,0.00000,1.00000"
-            ],
-            "orientation" : {
-              "start" : {
-                "x" : 0.5,
-                "y" : 0
-              },
-              "stop" : {
-                "x" : 0.5,
-                "y" : 0.7
-              }
-            }
-          },
-          "glass" : true,
-          "image-name" : "e.png",
-          "name" : "e"
+          "glass" : false,
+          "image-name" : "receipt.png",
+          "name" : "Receipt",
+          "position" : {
+            "scale" : 0.72,
+            "translation-in-points" : [0, 0]
+          }
         }
       ],
       "shadow" : {
@@ -46,8 +34,8 @@
         "opacity" : 0.5
       },
       "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
+        "enabled" : false,
+        "value" : 0
       }
     }
   ],

@@ -7,6 +7,44 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        A26100500000000000000001 /* KeyboardLayoutUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26100500000000000000002 /* KeyboardLayoutUITests.swift */; };
+        F26010050000000000001601 /* SpendingExplorationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001611; };
+        F26010050000000000001401 /* RemoteReceiptInference.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001411; };
+        F26010050000000000001501 /* GlassReflectionMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001511; };
+        F26010050000000000001402 /* RemoteTransactionReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001412; };
+        F26010050000000000001403 /* RemoteReceiptInferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001413; };
+        F26010050000000000001304 /* SpendingClassificationSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001314; };
+        F26010050000000000001301 /* SpendingClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001311; };
+        F26010050000000000001302 /* ClassificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001312; };
+        F26010050000000000001303 /* SpendingClassificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001313; };
+        F26010050000000000001201 /* SpendingChatHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001211; };
+        F26010050000000000001202 /* SpendingChatHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001212; };
+        F26010050000000000001203 /* SpendingChatHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001213; };
+        F26010050000000000001105 /* OpenRouterSpendingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001115; };
+        F26010050000000000001104 /* OpenRouterClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001114; };
+        F26010050000000000001103 /* AISettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001113; };
+        F26010050000000000001102 /* OpenRouterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001112; };
+        F26010050000000000001101 /* OpenRouterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001111; };
+        F26010050000000000001001 /* icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001011; };
+        F26010050000000000000901 /* SummaryCardLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000000911; };
+        E26010050000000000000801 /* CurrencyPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010050000000000000811; };
+        E26010050000000000000802 /* CurrencyPickerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010050000000000000812; };
+        E26010040000000000000701 /* ExpenseChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26010040000000000000711; };
+        D26010040000000000000601 /* InsightsAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26010040000000000000611; };
+        D26010040000000000000602 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26010040000000000000612; };
+        D26010040000000000000603 /* InsightsAnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26010040000000000000613; };
+        C26010040000000000000501 /* CategoryCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26010040000000000000511; };
+        C26010040000000000000502 /* CategorySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26010040000000000000512; };
+        C26010040000000000000503 /* CategoryCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26010040000000000000513; };
+        B26010040000000000000401 /* LedgerRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000411; };
+        B26010040000000000000402 /* LedgerMutationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000412; };
+        B26010040000000000000403 /* LedgerBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000413; };
+        B26010040000000000000404 /* BackupRestoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000414; };
+        B26010040000000000000405 /* TransactionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000415; };
+        B26010040000000000000406 /* TransactionHistoryFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000416; };
+        B26010040000000000000407 /* LedgerBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000417; };
+        B26010040000000000000408 /* LedgerMutationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000418; };
+        B26010040000000000000409 /* TransactionHistoryFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26010040000000000000419; };
         A26010040000000000000301 /* OwnerLedgerMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000311; };
         A26010040000000000000201 /* ReceiptInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000211; };
         A26010040000000000000202 /* ReceiptEvidenceValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26010040000000000000212; };
@@ -73,6 +111,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+        A26100500000000000000003 /* UI Test Target Proxy */ = {isa = PBXContainerItemProxy; containerPortal = 738B1C0C25C65DFE0067407B /* Project object */; proxyType = 1; remoteGlobalIDString = 738B1C1325C65DFE0067407B; remoteInfo = Expenso; };
         F26010040000000000000031 /* PBXContainerItemProxy */ = {
             isa = PBXContainerItemProxy;
             containerPortal = 738B1C0C25C65DFE0067407B /* Project object */;
@@ -96,6 +135,45 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        A26100500000000000000002 /* KeyboardLayoutUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayoutUITests.swift; sourceTree = "<group>"; };
+        A26100500000000000000004 /* ExpensoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExpensoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+        F26010050000000000001611 /* SpendingExplorationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingExplorationTests.swift; sourceTree = "<group>"; };
+        F26010050000000000001411 /* RemoteReceiptInference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteReceiptInference.swift; sourceTree = "<group>"; };
+        F26010050000000000001511 /* GlassReflectionMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassReflectionMotion.swift; sourceTree = "<group>"; };
+        F26010050000000000001412 /* RemoteTransactionReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTransactionReviewView.swift; sourceTree = "<group>"; };
+        F26010050000000000001413 /* RemoteReceiptInferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteReceiptInferenceTests.swift; sourceTree = "<group>"; };
+        F26010050000000000001314 /* SpendingClassificationSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingClassificationSafetyTests.swift; sourceTree = "<group>"; };
+        F26010050000000000001311 /* SpendingClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingClassification.swift; sourceTree = "<group>"; };
+        F26010050000000000001312 /* ClassificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassificationSettingsView.swift; sourceTree = "<group>"; };
+        F26010050000000000001313 /* SpendingClassificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingClassificationTests.swift; sourceTree = "<group>"; };
+        F26010050000000000001211 /* SpendingChatHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingChatHistory.swift; sourceTree = "<group>"; };
+        F26010050000000000001212 /* SpendingChatHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingChatHistoryView.swift; sourceTree = "<group>"; };
+        F26010050000000000001213 /* SpendingChatHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingChatHistoryTests.swift; sourceTree = "<group>"; };
+        F26010050000000000001115 /* OpenRouterSpendingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterSpendingTests.swift; sourceTree = "<group>"; };
+        F26010050000000000001114 /* OpenRouterClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterClientTests.swift; sourceTree = "<group>"; };
+        F26010050000000000001113 /* AISettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISettingsView.swift; sourceTree = "<group>"; };
+        F26010050000000000001112 /* OpenRouterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterSettings.swift; sourceTree = "<group>"; };
+        F26010050000000000001111 /* OpenRouterClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterClient.swift; sourceTree = "<group>"; };
+        F26010050000000000001011 /* icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; name = icon.icon; path = ../Marketing/icon.icon; sourceTree = "<group>"; };
+        F26010050000000000000911 /* SummaryCardLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryCardLayoutTests.swift; sourceTree = "<group>"; };
+        E26010050000000000000811 /* CurrencyPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyPickerView.swift; sourceTree = "<group>"; };
+        E26010050000000000000812 /* CurrencyPickerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyPickerTests.swift; sourceTree = "<group>"; };
+        E26010040000000000000711 /* ExpenseChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseChrome.swift; sourceTree = "<group>"; };
+        D26010040000000000000611 /* InsightsAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsAnalytics.swift; sourceTree = "<group>"; };
+        D26010040000000000000612 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
+        D26010040000000000000613 /* InsightsAnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsAnalyticsTests.swift; sourceTree = "<group>"; };
+        C26010040000000000000511 /* CategoryCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCatalog.swift; sourceTree = "<group>"; };
+        C26010040000000000000512 /* CategorySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySettingsView.swift; sourceTree = "<group>"; };
+        C26010040000000000000513 /* CategoryCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCatalogTests.swift; sourceTree = "<group>"; };
+        B26010040000000000000411 /* LedgerRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerRecord.swift; sourceTree = "<group>"; };
+        B26010040000000000000412 /* LedgerMutationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerMutationService.swift; sourceTree = "<group>"; };
+        B26010040000000000000413 /* LedgerBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerBackupService.swift; sourceTree = "<group>"; };
+        B26010040000000000000414 /* BackupRestoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRestoreView.swift; sourceTree = "<group>"; };
+        B26010040000000000000415 /* TransactionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryView.swift; sourceTree = "<group>"; };
+        B26010040000000000000416 /* TransactionHistoryFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryFilter.swift; sourceTree = "<group>"; };
+        B26010040000000000000417 /* LedgerBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerBackupTests.swift; sourceTree = "<group>"; };
+        B26010040000000000000418 /* LedgerMutationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerMutationTests.swift; sourceTree = "<group>"; };
+        B26010040000000000000419 /* TransactionHistoryFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionHistoryFilterTests.swift; sourceTree = "<group>"; };
         A26010040000000000000311 /* OwnerLedgerMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerLedgerMigrationTests.swift; sourceTree = "<group>"; };
         A26010040000000000000211 /* ReceiptInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptInterpreter.swift; sourceTree = "<group>"; };
         A26010040000000000000212 /* ReceiptEvidenceValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptEvidenceValidator.swift; sourceTree = "<group>"; };
@@ -161,6 +239,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+        A26100500000000000000005 /* UI Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
         F26010040000000000000041 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		738B1C1125C65DFE0067407B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -177,9 +256,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+        A26100500000000000000006 /* ExpensoUITests */ = {isa = PBXGroup; children = (A26100500000000000000002 /* KeyboardLayoutUITests.swift */); path = ExpensoUITests; sourceTree = "<group>"; };
+        D26010040000000000000620 /* Insights */ = {
+            isa = PBXGroup;
+            children = (D26010040000000000000612 /* InsightsView.swift */);
+            path = Insights;
+            sourceTree = "<group>";
+        };
         F26010040000000000000020 /* ExpensoTests */ = {
             isa = PBXGroup;
-            children = (F26010040000000000000011 /* CurrencySupportTests.swift */, F26010040000000000000012 /* ExchangeRateServiceTests.swift */, A26010040000000000000114 /* ReceiptParserTests.swift */, A26010040000000000000213 /* ReceiptEvidenceValidatorTests.swift */, A26010040000000000000311 /* OwnerLedgerMigrationTests.swift */);
+            children = (F26010040000000000000011 /* CurrencySupportTests.swift */, F26010040000000000000012 /* ExchangeRateServiceTests.swift */, A26010040000000000000114 /* ReceiptParserTests.swift */, A26010040000000000000213 /* ReceiptEvidenceValidatorTests.swift */, A26010040000000000000311 /* OwnerLedgerMigrationTests.swift */, B26010040000000000000417 /* LedgerBackupTests.swift */, B26010040000000000000418 /* LedgerMutationTests.swift */, B26010040000000000000419 /* TransactionHistoryFilterTests.swift */, C26010040000000000000513 /* CategoryCatalogTests.swift */, D26010040000000000000613 /* InsightsAnalyticsTests.swift */, E26010050000000000000812 /* CurrencyPickerTests.swift */, F26010050000000000000911 /* SummaryCardLayoutTests.swift */, F26010050000000000001114 /* OpenRouterClientTests.swift */, F26010050000000000001115 /* OpenRouterSpendingTests.swift */, F26010050000000000001213 /* SpendingChatHistoryTests.swift */, F26010050000000000001313 /* SpendingClassificationTests.swift */, F26010050000000000001314 /* SpendingClassificationSafetyTests.swift */, F26010050000000000001413 /* RemoteReceiptInferenceTests.swift */, F26010050000000000001611 /* SpendingExplorationTests.swift */);
             path = ExpensoTests;
             sourceTree = "<group>";
         };
@@ -188,14 +274,23 @@
             children = (
                 E26010040000000000000011 /* SpendingChatView.swift */,
                 E26010040000000000000012 /* SpendingChatModel.swift */,
+                F26010050000000000001212 /* SpendingChatHistoryView.swift */,
             );
             path = SpendingChat;
+            sourceTree = "<group>";
+        };
+        B26010040000000000000420 /* History */ = {
+            isa = PBXGroup;
+            children = (B26010040000000000000415 /* TransactionHistoryView.swift */);
+            path = History;
             sourceTree = "<group>";
         };
 		733763A827120DB600AA983A /* Screens */ = {
 			isa = PBXGroup;
 			children = (
                 E26010040000000000000020 /* SpendingChat */,
+                B26010040000000000000420 /* History */,
+                D26010040000000000000620 /* Insights */,
 				739DFF7925DC1E23005BD5C8 /* Authenticate */,
 				738B1C8E25C680C50067407B /* About */,
 				738B1C8925C67D790067407B /* ExpenseFilter */,
@@ -241,6 +336,7 @@
 			isa = PBXGroup;
 			children = (
 				F26010040000000000000020 /* ExpensoTests */,
+                A26100500000000000000006 /* ExpensoUITests */,
 				738B1C1625C65DFE0067407B /* Expenso */,
 				AEEF1D942CEDF0700059F63B /* Frameworks */,
 				738B1C1525C65DFE0067407B /* Products */,
@@ -251,6 +347,7 @@
 			isa = PBXGroup;
 			children = (
 				F26010040000000000000013 /* ExpensoTests.xctest */,
+                A26100500000000000000004 /* ExpensoUITests.xctest */,
 				738B1C1425C65DFE0067407B /* Expenso.app */,
 			);
 			name = Products;
@@ -259,6 +356,7 @@
 		738B1C1625C65DFE0067407B /* Expenso */ = {
 			isa = PBXGroup;
 			children = (
+                F26010050000000000001011 /* icon.icon */,
 				733763AA27120E0500AA983A /* Library */,
 				733763A927120DF300AA983A /* Resources */,
 				733763A827120DB600AA983A /* Screens */,
@@ -299,6 +397,7 @@
 		738B1C3A25C662060067407B /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+                E26010050000000000000811 /* CurrencyPickerView.swift */,
 				738B1C3B25C662580067407B /* Models.swift */,
 				738B1C3F25C662890067407B /* InterFontModifier.swift */,
 				738B1C4225C6629C0067407B /* ColorExtension.swift */,
@@ -336,6 +435,10 @@
 				738B1C6B25C673FC0067407B /* ExpenseCSVModel.swift */,
 				738B1C6F25C674120067407B /* ExpenseSettingsViewModel.swift */,
 				738B1C7225C674320067407B /* ExpenseSettingsView.swift */,
+                B26010040000000000000414 /* BackupRestoreView.swift */,
+                C26010040000000000000512 /* CategorySettingsView.swift */,
+                F26010050000000000001312 /* ClassificationSettingsView.swift */,
+                F26010050000000000001113 /* AISettingsView.swift */,
 			);
 			path = ExpenseSettings;
 			sourceTree = "<group>";
@@ -346,6 +449,7 @@
 				738B1C7625C675200067407B /* AddExpenseView.swift */,
 				738B1C7A25C6752E0067407B /* AddExpenseViewModel.swift */,
                 A26010040000000000000113 /* ReceiptImportView.swift */,
+                F26010050000000000001412 /* RemoteTransactionReviewView.swift */,
 			);
 			path = AddExpense;
 			sourceTree = "<group>";
@@ -404,6 +508,7 @@
 			isa = PBXGroup;
 			children = (
 				AE27EE512CEDFEB400D64ABD /* CapsuleButtonStyle.swift */,
+				E26010040000000000000711 /* ExpenseChrome.swift */,
 			);
 			path = Styles;
 			sourceTree = "<group>";
@@ -412,8 +517,20 @@
 			isa = PBXGroup;
 			children = (
                 E26010040000000000000013 /* SpendingDataStore.swift */,
+                B26010040000000000000411 /* LedgerRecord.swift */,
+                C26010040000000000000511 /* CategoryCatalog.swift */,
+                D26010040000000000000611 /* InsightsAnalytics.swift */,
+                B26010040000000000000412 /* LedgerMutationService.swift */,
+                B26010040000000000000413 /* LedgerBackupService.swift */,
+                B26010040000000000000416 /* TransactionHistoryFilter.swift */,
                 E26010040000000000000014 /* CurrencySupport.swift */,
                 E26010040000000000000015 /* ExchangeRateService.swift */,
+                F26010050000000000001112 /* OpenRouterSettings.swift */,
+                F26010050000000000001211 /* SpendingChatHistory.swift */,
+                F26010050000000000001311 /* SpendingClassification.swift */,
+                F26010050000000000001411 /* RemoteReceiptInference.swift */,
+                F26010050000000000001511 /* GlassReflectionMotion.swift */,
+                F26010050000000000001111 /* OpenRouterClient.swift */,
                 A26010040000000000000111 /* ReceiptParser.swift */,
                 A26010040000000000000112 /* ReceiptScanner.swift */,
                 A26010040000000000000211 /* ReceiptInterpreter.swift */,
@@ -433,6 +550,17 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+        A26100500000000000000007 /* ExpensoUITests */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = A26100500000000000000008 /* UI Test Configurations */;
+            buildPhases = (A26100500000000000000009 /* UI Sources */, A26100500000000000000005 /* UI Frameworks */, A26100500000000000000010 /* UI Resources */);
+            buildRules = ();
+            dependencies = (A26100500000000000000011 /* UI Test Dependency */);
+            name = ExpensoUITests;
+            productName = ExpensoUITests;
+            productReference = A26100500000000000000004 /* ExpensoUITests.xctest */;
+            productType = "com.apple.product-type.bundle.ui-testing";
+        };
         F26010040000000000000030 /* ExpensoTests */ = {
             isa = PBXNativeTarget;
             buildConfigurationList = F26010040000000000000052 /* Build configuration list for PBXNativeTarget "ExpensoTests" */;
@@ -471,6 +599,7 @@
 				LastSwiftUpdateCheck = 1220;
 				LastUpgradeCheck = 1220;
 				TargetAttributes = {
+                    A26100500000000000000007 = {CreatedOnToolsVersion = 27.0; TestTargetID = 738B1C1325C65DFE0067407B; };
                     F26010040000000000000030 = {CreatedOnToolsVersion = 27.0; TestTargetID = 738B1C1325C65DFE0067407B; };
 					738B1C1325C65DFE0067407B = {
 						CreatedOnToolsVersion = 12.2;
@@ -495,6 +624,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+                A26100500000000000000007 /* ExpensoUITests */,
 				F26010040000000000000030 /* ExpensoTests */,
 				738B1C1325C65DFE0067407B /* Expenso */,
 			);
@@ -502,11 +632,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+        A26100500000000000000010 /* UI Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
         F26010040000000000000042 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		738B1C1225C65DFE0067407B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                F26010050000000000001001 /* icon.icon in Resources */,
 				736C720A25CFD89900720DEA /* empty-face.json in Resources */,
 				738B1C6625C671A80067407B /* Inter-Light.ttf in Resources */,
 				738B1C6225C671A80067407B /* Inter-SemiBold.ttf in Resources */,
@@ -526,10 +658,11 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+        A26100500000000000000009 /* UI Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A26100500000000000000001 /* KeyboardLayoutUITests.swift in Sources */); runOnlyForDeploymentPostprocessing = 0; };
         F26010040000000000000040 /* Sources */ = {
             isa = PBXSourcesBuildPhase;
             buildActionMask = 2147483647;
-            files = (F26010040000000000000001 /* CurrencySupportTests.swift in Sources */, F26010040000000000000002 /* ExchangeRateServiceTests.swift in Sources */, A26010040000000000000104 /* ReceiptParserTests.swift in Sources */, A26010040000000000000203 /* ReceiptEvidenceValidatorTests.swift in Sources */, A26010040000000000000301 /* OwnerLedgerMigrationTests.swift in Sources */);
+            files = (F26010040000000000000001 /* CurrencySupportTests.swift in Sources */, F26010040000000000000002 /* ExchangeRateServiceTests.swift in Sources */, A26010040000000000000104 /* ReceiptParserTests.swift in Sources */, A26010040000000000000203 /* ReceiptEvidenceValidatorTests.swift in Sources */, A26010040000000000000301 /* OwnerLedgerMigrationTests.swift in Sources */, B26010040000000000000407 /* LedgerBackupTests.swift in Sources */, B26010040000000000000408 /* LedgerMutationTests.swift in Sources */, B26010040000000000000409 /* TransactionHistoryFilterTests.swift in Sources */, C26010040000000000000503 /* CategoryCatalogTests.swift in Sources */, D26010040000000000000603 /* InsightsAnalyticsTests.swift in Sources */, E26010050000000000000802 /* CurrencyPickerTests.swift in Sources */, F26010050000000000000901 /* SummaryCardLayoutTests.swift in Sources */, F26010050000000000001104 /* OpenRouterClientTests.swift in Sources */, F26010050000000000001105 /* OpenRouterSpendingTests.swift in Sources */, F26010050000000000001203 /* SpendingChatHistoryTests.swift in Sources */, F26010050000000000001303 /* SpendingClassificationTests.swift in Sources */, F26010050000000000001304 /* SpendingClassificationSafetyTests.swift in Sources */, F26010050000000000001403 /* RemoteReceiptInferenceTests.swift in Sources */, F26010050000000000001601 /* SpendingExplorationTests.swift in Sources */);
             runOnlyForDeploymentPostprocessing = 0;
         };
 		738B1C1025C65DFE0067407B /* Sources */ = {
@@ -537,9 +670,30 @@
 			buildActionMask = 2147483647;
 			files = (
                 E26010040000000000000001 /* SpendingChatView.swift in Sources */,
+                B26010040000000000000401 /* LedgerRecord.swift in Sources */,
+                C26010040000000000000501 /* CategoryCatalog.swift in Sources */,
+                D26010040000000000000601 /* InsightsAnalytics.swift in Sources */,
+                D26010040000000000000602 /* InsightsView.swift in Sources */,
+                C26010040000000000000502 /* CategorySettingsView.swift in Sources */,
+                B26010040000000000000402 /* LedgerMutationService.swift in Sources */,
+                B26010040000000000000403 /* LedgerBackupService.swift in Sources */,
+                B26010040000000000000404 /* BackupRestoreView.swift in Sources */,
+                B26010040000000000000405 /* TransactionHistoryView.swift in Sources */,
+                B26010040000000000000406 /* TransactionHistoryFilter.swift in Sources */,
                 E26010040000000000000002 /* SpendingChatModel.swift in Sources */,
+                F26010050000000000001103 /* AISettingsView.swift in Sources */,
+                F26010050000000000001201 /* SpendingChatHistory.swift in Sources */,
+                F26010050000000000001301 /* SpendingClassification.swift in Sources */,
+                F26010050000000000001401 /* RemoteReceiptInference.swift in Sources */,
+                F26010050000000000001501 /* GlassReflectionMotion.swift in Sources */,
+                F26010050000000000001402 /* RemoteTransactionReviewView.swift in Sources */,
+                F26010050000000000001302 /* ClassificationSettingsView.swift in Sources */,
+                F26010050000000000001202 /* SpendingChatHistoryView.swift in Sources */,
+                F26010050000000000001102 /* OpenRouterSettings.swift in Sources */,
+                F26010050000000000001101 /* OpenRouterClient.swift in Sources */,
                 E26010040000000000000003 /* SpendingDataStore.swift in Sources */,
                 E26010040000000000000004 /* CurrencySupport.swift in Sources */,
+                E26010050000000000000801 /* CurrencyPickerView.swift in Sources */,
                 E26010040000000000000005 /* ExchangeRateService.swift in Sources */,
                 A26010040000000000000101 /* ReceiptParser.swift in Sources */,
                 A26010040000000000000102 /* ReceiptScanner.swift in Sources */,
@@ -562,6 +716,7 @@
 				738B1C3C25C662580067407B /* Models.swift in Sources */,
 				753CBDD325F36864005762B8 /* BiometricAuthUtility.swift in Sources */,
 				AE27EE522CEDFEB600D64ABD /* CapsuleButtonStyle.swift in Sources */,
+				E26010040000000000000701 /* ExpenseChrome.swift in Sources */,
 				738B1C7325C674320067407B /* ExpenseSettingsView.swift in Sources */,
 				75C6B48025F37FD20079BCFC /* AuthenticationViewModel.swift in Sources */,
 				738B1C4C25C663060067407B /* DismissKeyboard.swift in Sources */,
@@ -582,6 +737,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+        A26100500000000000000011 /* UI Test Dependency */ = {isa = PBXTargetDependency; target = 738B1C1325C65DFE0067407B /* Expenso */; targetProxy = A26100500000000000000003 /* UI Test Target Proxy */; };
         F26010040000000000000032 /* PBXTargetDependency */ = {
             isa = PBXTargetDependency;
             target = 738B1C1325C65DFE0067407B /* Expenso */;
@@ -590,6 +746,40 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+        A26100500000000000000012 /* UI Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                DEVELOPMENT_TEAM = KTNPDHXXV3;
+                GENERATE_INFOPLIST_FILE = YES;
+                IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+                LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");
+                PRODUCT_BUNDLE_IDENTIFIER = com.expenso.ExpensoUITests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SDKROOT = iphoneos;
+                SWIFT_VERSION = 5.0;
+                TARGETED_DEVICE_FAMILY = "1,2";
+                TEST_TARGET_NAME = Expenso;
+            };
+            name = Debug;
+        };
+        A26100500000000000000013 /* UI Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                CODE_SIGN_STYLE = Automatic;
+                DEVELOPMENT_TEAM = KTNPDHXXV3;
+                GENERATE_INFOPLIST_FILE = YES;
+                IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+                LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");
+                PRODUCT_BUNDLE_IDENTIFIER = com.expenso.ExpensoUITests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SDKROOT = iphoneos;
+                SWIFT_VERSION = 5.0;
+                TARGETED_DEVICE_FAMILY = "1,2";
+                TEST_TARGET_NAME = Expenso;
+            };
+            name = Release;
+        };
         F26010040000000000000050 /* Debug */ = {
             isa = XCBuildConfiguration;
             buildSettings = {
@@ -745,7 +935,7 @@
 		738B1C2925C65E060067407B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"Expenso/Preview Content\"";
@@ -770,7 +960,7 @@
 		738B1C2A25C65E060067407B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"Expenso/Preview Content\"";
@@ -795,6 +985,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+        A26100500000000000000008 /* UI Test Configurations */ = {isa = XCConfigurationList; buildConfigurations = (A26100500000000000000012 /* UI Debug */, A26100500000000000000013 /* UI Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
         F26010040000000000000052 /* Build configuration list for PBXNativeTarget "ExpensoTests" */ = {
             isa = XCConfigurationList;
             buildConfigurations = (F26010040000000000000050 /* Debug */, F26010040000000000000051 /* Release */);

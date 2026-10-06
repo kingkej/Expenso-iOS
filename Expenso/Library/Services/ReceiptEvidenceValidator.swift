@@ -65,7 +65,11 @@ enum ReceiptEvidenceValidator {
                                  date: date, rawText: rawText, warnings: warnings)
     }
 
-    private static let fiatCodes = Set(Locale.commonISOCurrencyCodes + ["RUB", "BAM"])
+    private static let fiatCodes = Set(CurrencySettings.codes)
+
+    static func hasConflictingCurrencies(in rawText: String) -> Bool {
+        detectedCurrencyCodes(in: rawText).count > 1
+    }
 
     private static func grounded(_ candidate: String?, field: String, limit: Int,
                                  rawText: String, warnings: inout [String]) -> String? {

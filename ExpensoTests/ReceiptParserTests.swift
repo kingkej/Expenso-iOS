@@ -182,6 +182,90 @@ struct ReceiptParserTests {
 }
 
 struct ReceiptDraftApplicationTests {
+    @Test("Import completion recognizes untouched drafts but preserves individual field choices") @MainActor
+    func pristineDraft() {
+        let previousAttachmentHandler = AttachmentHandler.shared.imagePickedBlock
+        defer { AttachmentHandler.shared.imagePickedBlock = previousAttachmentHandler }
+        let editor = AddExpenseViewModel(baseCurrency: "RUB")
+        #expect(editor.isPristineDraft)
+        let category = editor.selectedTag
+        editor.selectedTag = "food"
+        #expect(!editor.isPristineDraft)
+        editor.selectedTag = category
+        editor.currency = "BAM"
+        #expect(!editor.isPristineDraft)
+        editor.currency = "RUB"
+        editor.conversionCurrency = "EUR"
+        #expect(!editor.isPristineDraft)
+        editor.conversionCurrency = "RUB"
+        let date = editor.occuredOn
+        editor.occuredOn = date.addingTimeInterval(-86_400)
+        #expect(!editor.isPristineDraft)
+        editor.occuredOn = date
+        editor.selectedType = TRANS_TYPE_INCOME
+        #expect(!editor.isPristineDraft)
+        editor.selectedType = TRANS_TYPE_EXPENSE
+        editor.useManualRate = true
+        #expect(!editor.isPristineDraft)
+        editor.useManualRate = false
+        editor.manualRate = "47.2"
+        #expect(!editor.isPristineDraft)
+        editor.manualRate = ""
+        #expect(editor.isPristineDraft)
+    }
+
+    @Test("Manual entry starts as an expense while imported types remain explicit") @MainActor
+    func expenseDefaultAndReceiptType() {
+        let previousAttachmentHandler = AttachmentHandler.shared.imagePickedBlock
+        defer { AttachmentHandler.shared.imagePickedBlock = previousAttachmentHandler }
+        let editor = AddExpenseViewModel(baseCurrency: "RUB")
+        #expect(editor.selectedType == TRANS_TYPE_EXPENSE)
+        #expect(editor.typeTitle == "Expense")
+        editor.applyReceipt(title: "Salary", amount: "100", currency: "RUB",
+                            date: nil, type: TRANS_TYPE_INCOME, image: nil)
+        #expect(editor.selectedType == TRANS_TYPE_INCOME)
+        #expect(editor.typeTitle == "Income")
+        #expect(editor.amount == "100")
+        #expect(!editor.isPristineDraft)
+    }
+
+    @Test("Validation identifies amount first and preserves valid zero amounts") @MainActor
+    func requiredFields() {
+        let previousAttachmentHandler = AttachmentHandler.shared.imagePickedBlock
+        defer { AttachmentHandler.shared.imagePickedBlock = previousAttachmentHandler }
+        let editor = AddExpenseViewModel(baseCurrency: "RUB")
+        #expect(editor.firstInvalidField == .amount)
+        for invalid in ["", "-5", "abc"] {
+            editor.amount = invalid
+            #expect(editor.firstInvalidField == .amount)
+            #expect(editor.validationMessage(for: .amount) != nil)
+        }
+        editor.amount = "12.50"
+        editor.title = " \n "
+        #expect(editor.firstInvalidField == .title)
+        #expect(editor.validationMessage(for: .amount) == nil)
+        editor.title = "Lunch"
+        #expect(editor.firstInvalidField == nil)
+        #expect(editor.validationMessage(for: .title) == nil)
+        editor.amount = "0"
+        #expect(editor.firstInvalidField == nil)
+        #expect(editor.validationMessage(for: .amount) == nil)
+    }
+
+    @Test("Import errors show actionable recovery and retain diagnostics") @MainActor
+    func importErrorRecovery() {
+        let model = ReceiptImportModel()
+        model.recordError(ReceiptScanError.noText)
+        #expect(model.recoveryMessage == ReceiptScanError.noText.localizedDescription)
+        model.recordError(OpenRouterError.unfinished("length"))
+        #expect(model.error == OpenRouterError.unfinished("length").localizedDescription)
+        #expect(model.recoveryMessage?.contains("smaller input") == true)
+        model.recordError(RemoteReceiptError.invalidText)
+        #expect(model.recoveryMessage?.contains("smaller batches") == true)
+        model.error = nil
+        #expect(model.recoveryMessage == nil)
+    }
+
     @Test("A receipt currency change clears the old manual conversion") @MainActor
     func changedCurrency() {
         let previousAttachmentHandler = AttachmentHandler.shared.imagePickedBlock

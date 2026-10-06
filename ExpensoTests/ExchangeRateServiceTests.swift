@@ -159,6 +159,246 @@ struct ExchangeRateServiceTests {
     private static func payload(date: String = "2026-10-03", rub: Int = 100) -> String {
         "{\"date\":\"\(date)\",\"usd\":{\"usd\":1,\"bam\":2,\"rub\":\(rub)}}"
     }
+
+    @Test("Pre-archive dates propose the earliest published day without probing years of URLs")
+    func preArchiveEstimate() async throws {
+        let fixture = RateFixture(replies: [
+            .http(200, "{\"versions\":[\"2024.3.4\",\"0.0.9\",\"2024.3.2\",\"2024.3.3\"]}"),
+            .http(200, Self.payload(date: "2024-03-02"))
+        ])
+        defer { fixture.dispose() }
+        let service = fixture.service()
+        let proposal = try await service.nearestAvailableSnapshot(for: "2023-10-18")
+        #expect(proposal.date == "2024-03-02")
+        #expect(proposal.requestedDate == "2023-10-18")
+        #expect(proposal.isApproximate)
+        #expect(proposal.source.contains("@2024-03-02/"))
+        #expect(try proposal.rate(from: "BAM", to: "RUB") == 50)
+        #expect(fixture.requests.count == 2)
+        #expect(fixture.requests.first?.url?.host == "data.jsdelivr.com")
+        // A second old transaction shares the table, never its requested day.
+        let second = try await service.nearestAvailableSnapshot(for: "2023-10-19")
+        #expect(second.requestedDate == "2023-10-19")
+        #expect(fixture.requests.count == 2)
+        let exact = try await fixture.service().snapshot(for: "2024-03-02")
+        #expect(exact.requestedDate == nil)
+        #expect(!exact.isApproximate)
+        #expect(!FileManager.default.fileExists(atPath: fixture.directory.appendingPathComponent("2023-10-18.json").path))
+        #expect(fixture.requests.count == 2)
+    }
+
+    @Test("Nearest missing day uses the earlier date on ties, including across a month boundary")
+    func nearestTie() async throws {
+        let fixture = RateFixture(replies: [
+            .http(200, "{\"versions\":[\"2026.10.1\",\"2026.9.29\"]}"),
+            .http(404, ""), .http(404, ""),
+            .http(200, Self.payload(date: "2026-09-29"))
+        ])
+        defer { fixture.dispose() }
+        let result = try await fixture.service().nearestAvailableSnapshot(for: "2026-09-30")
+        #expect(result.date == "2026-09-29")
+        #expect(result.requestedDate == "2026-09-30")
+        #expect(fixture.requests.count == 4)
+    }
+
+    @Test("A closer later published day wins over a more distant earlier one")
+    func nearestLater() async throws {
+        let fixture = RateFixture(replies: [
+            .http(200, "{\"versions\":[\"2026.9.28\",\"2026.10.3\"]}"),
+            .http(404, ""), .http(404, ""),
+            .http(200, Self.payload(date: "2026-10-03"))
+        ])
+        defer { fixture.dispose() }
+        let result = try await fixture.service().nearestAvailableSnapshot(for: "2026-10-02")
+        #expect(result.date == "2026-10-03")
+        #expect(result.requestedDate == "2026-10-02")
+    }
+
+    @Test("A published day's outage does not silently substitute another date")
+    func publishedDayOffline() async {
+        let fixture = RateFixture(replies: [
+            .http(200, "{\"versions\":[\"2026.10.2\",\"2026.10.3\"]}"),
+            .failure(.notConnectedToInternet), .failure(.notConnectedToInternet)
+        ])
+        defer { fixture.dispose() }
+        await #expect(throws: ExchangeRateError.self) {
+            try await fixture.service().nearestAvailableSnapshot(for: "2026-10-03")
+        }
+        #expect(fixture.requests.count == 3)
+    }
+
+    @Test("The live exact day wins even when the publication index lags behind")
+    func indexLag() async throws {
+        let fixture = RateFixture(replies: [
+            .http(200, "{\"versions\":[\"2026.10.2\"]}"), .http(200, Self.payload())
+        ])
+        defer { fixture.dispose() }
+        let result = try await fixture.service().nearestAvailableSnapshot(for: "2026-10-03")
+        #expect(result.date == "2026-10-03")
+        #expect(!result.isApproximate)
+        #expect(fixture.requests.count == 2)
+    }
+
+    @Test("A lagging index and cached nearest table cannot turn a network failure into a missing day")
+    func laggingIndexOffline() async throws {
+        let fixture = RateFixture(replies: [
+            .http(200, Self.payload(date: "2026-10-02")),
+            .http(200, "{\"versions\":[\"2026.10.2\"]}"),
+            .failure(.notConnectedToInternet), .failure(.notConnectedToInternet)
+        ])
+        defer { fixture.dispose() }
+        let service = fixture.service()
+        _ = try await service.snapshot(for: "2026-10-02")
+        await #expect(throws: ExchangeRateError.self) {
+            try await service.nearestAvailableSnapshot(for: "2026-10-03")
+        }
+        #expect(fixture.requests.count == 4)
+    }
+
+    @Test("An unavailable publication index still permits exact-day requests")
+    func unavailableIndex() async throws {
+        let fixture = RateFixture(replies: [.http(503, ""), .http(200, Self.payload())])
+        defer { fixture.dispose() }
+        let result = try await fixture.service().nearestAvailableSnapshot(for: "2026-10-03")
+        #expect(result.date == "2026-10-03")
+        #expect(!result.isApproximate)
+    }
+
+    @Test("Invalid, non-date and future index entries never become fallback candidates")
+    func filtersIndex() async throws {
+        let fixture = RateFixture(replies: [
+            .http(200, "{\"versions\":[\"0.0.9\",\"2026.2.30\",\"2026.10.5\",\"2026.10.3-beta\",\"2026.13.1\",\"2026.10.2\"]}"),
+            .http(404, ""), .http(404, ""), .http(200, Self.payload(date: "2026-10-02"))
+        ])
+        defer { fixture.dispose() }
+        let result = try await fixture.service().nearestAvailableSnapshot(for: "2026-10-04")
+        #expect(result.date == "2026-10-02")
+        #expect(fixture.requests.count == 4)
+    }
+
+    @Test("A nearest-date proposal still rejects a wrong-day provider payload")
+    func incorrectNearestPayload() async {
+        let fixture = RateFixture(replies: [
+            .http(200, "{\"versions\":[\"2024.3.2\"]}"),
+            .http(200, Self.payload(date: "2024-03-03")), .http(200, Self.payload(date: "2024-03-03"))
+        ])
+        defer { fixture.dispose() }
+        await #expect(throws: ExchangeRateError.self) {
+            try await fixture.service().nearestAvailableSnapshot(for: "2023-10-18")
+        }
+        #expect(fixture.requests.count == 3)
+    }
+
+    @Test("Cancelled nearest lookups do not fetch a table after index cancellation")
+    func cancelledIndex() async {
+        let fixture = RateFixture(replies: [.failure(.cancelled)])
+        defer { fixture.dispose() }
+        await #expect(throws: CancellationError.self) {
+            try await fixture.service().nearestAvailableSnapshot(for: "2023-10-18")
+        }
+        #expect(fixture.requests.count == 1)
+    }
+
+    @Test("An unpublished local current day offers yesterday without relabeling its rates")
+    func unpublishedCurrentDay() async throws {
+        let fixture = RateFixture(replies: [
+            .http(404, "Release not found"), .http(404, "Deployment not found"),
+            .http(200, "{\"versions\":[\"2026.10.5\"]}"),
+            .http(404, ""), .http(404, ""),
+            .http(200, Self.payload(date: "2026-10-05"))
+        ])
+        fixture.clock.advance(by: 2 * 24 * 60 * 60)
+        defer { fixture.dispose() }
+        let service = fixture.service()
+        do {
+            _ = try await service.snapshot(for: "2026-10-06")
+            Issue.record("An unpublished day must fail the exact lookup")
+        } catch ExchangeRateError.notPublished(let day) {
+            #expect(day == "2026-10-06")
+        }
+        let proposal = try await service.nearestAvailableSnapshot(for: "2026-10-06")
+        #expect(proposal.date == "2026-10-05")
+        #expect(proposal.requestedDate == "2026-10-06")
+        #expect(proposal.isApproximate)
+        #expect(try proposal.rate(from: "BAM", to: "RUB") == 50)
+        #expect(!FileManager.default.fileExists(atPath:
+            fixture.directory.appendingPathComponent("2026-10-06.json").path))
+    }
+
+    @Test("Editor estimates require acceptance and survive the same-key save refresh")
+    @MainActor func editorRateAcceptance() async throws {
+        let fixture = RateFixture(replies: [
+            .http(404, ""), .http(404, ""),
+            .http(200, "{\"versions\":[\"2026.10.3\"]}"),
+            .http(404, ""), .http(404, ""), .http(200, Self.payload())
+        ])
+        defer { fixture.dispose() }
+        let model = AddExpenseViewModel(baseCurrency: "RUB", rateService: fixture.service())
+        model.currency = "BAM"
+        model.amount = "7"
+        model.occuredOn = Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: 2026, month: 10, day: 4, hour: 12))!
+        await model.refreshRate()
+        #expect(model.canRequestNearestRate)
+        await model.requestNearestRate()
+        #expect(model.rateSnapshot == nil)
+        #expect(model.conversionPreview == nil)
+        #expect(model.nearestRateProposal?.requestedDate == "2026-10-04")
+        model.acceptNearestRateProposal()
+        #expect(model.nearestRateProposal == nil)
+        #expect(model.rateSnapshot?.date == "2026-10-03")
+        #expect(model.rateSnapshot?.isApproximate == true)
+        #expect(model.conversionPreview != nil)
+        let requestCount = fixture.requests.count
+        await model.refreshRate()
+        #expect(fixture.requests.count == requestCount)
+        #expect(model.rateSnapshot?.requestedDate == "2026-10-04")
+        model.currency = "RUB"
+        await model.refreshRate()
+        #expect(model.rateSnapshot == nil)
+        #expect(!model.canRequestNearestRate)
+    }
+
+    @Test("Changing the transaction date rejects a stale nearest-date proposal")
+    @MainActor func staleEditorRateProposal() async {
+        let fixture = RateFixture(replies: [
+            .http(404, ""), .http(404, ""),
+            .http(200, "{\"versions\":[\"2026.10.3\"]}"),
+            .http(404, ""), .http(404, ""), .http(200, Self.payload())
+        ])
+        defer { fixture.dispose() }
+        let model = AddExpenseViewModel(baseCurrency: "RUB", rateService: fixture.service())
+        model.currency = "BAM"
+        model.occuredOn = Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: 2026, month: 10, day: 4, hour: 12))!
+        await model.refreshRate()
+        await model.requestNearestRate()
+        #expect(model.nearestRateProposal != nil)
+        model.occuredOn = Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: 2026, month: 10, day: 2, hour: 12))!
+        model.acceptNearestRateProposal()
+        #expect(model.rateSnapshot == nil)
+        #expect(model.nearestRateProposal == nil)
+        #expect(!model.canRequestNearestRate)
+    }
+
+    @Test("A connection failure never offers the editor a different publication day")
+    @MainActor func editorOfflineRecovery() async {
+        let fixture = RateFixture(replies: [
+            .failure(.notConnectedToInternet), .failure(.notConnectedToInternet)
+        ])
+        defer { fixture.dispose() }
+        let model = AddExpenseViewModel(baseCurrency: "RUB", rateService: fixture.service())
+        model.currency = "BAM"
+        model.occuredOn = Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: 2026, month: 10, day: 4, hour: 12))!
+        await model.refreshRate()
+        #expect(model.rateError != nil)
+        #expect(!model.canRequestNearestRate)
+        await model.requestNearestRate()
+        #expect(model.nearestRateProposal == nil)
+        #expect(fixture.requests.count == 2)
+    }
 }
 
 /// Cancellation is set before entry regardless of task scheduling. No sleeps.

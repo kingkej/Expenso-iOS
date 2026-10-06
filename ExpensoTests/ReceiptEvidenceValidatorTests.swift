@@ -4,6 +4,68 @@ import Testing
 
 /// Source-only regression suite for local model suggestions grounded in OCR.
 struct ReceiptEvidenceValidatorTests {
+    @Test("Missing semantic fields retain conservative parser suggestions")
+    func missingSemanticFields() {
+        let fallback = ReceiptParser.parse(lines: ["Market", "2026-10-04", "Total: 12.00 EUR"])
+        let grounded = ReceiptEvidenceValidator.validate(suggestion(), rawText: fallback.rawText)
+        let result = ReceiptInterpreter.merge(grounded: grounded, fallback: fallback)
+        #expect(result.merchant == "Market")
+        #expect(result.amount == 12)
+        #expect(result.currency == "EUR")
+        #expect(result.date == localDate(2026, 10, 4))
+        #expect(result.rawText == fallback.rawText)
+        #expect(result.warnings == grounded.warnings + fallback.warnings)
+    }
+
+    @Test("Accepted semantic fields survive merging while missing fields use fallback")
+    func partialSemanticFields() {
+        let fallback = ReceiptParser.parse(lines: ["Receipt", "Market Corner", "2026-10-04", "Total: 12.00 EUR"])
+        let grounded = ReceiptEvidenceValidator.validate(suggestion(merchant: "Market Corner", total: "12.00"),
+            rawText: fallback.rawText)
+        let result = ReceiptInterpreter.merge(grounded: grounded, fallback: fallback)
+        #expect(result.merchant == "Market Corner")
+        #expect(result.amount == 12)
+        #expect(result.currency == "EUR")
+        #expect(result.date == localDate(2026, 10, 4))
+    }
+
+    @Test("Conflicting nonnil totals stay unresolved without losing other fallback fields")
+    func conflictingInterpretations() {
+        let fallback = ReceiptParser.parse(lines: ["Market", "2026-10-04", "Total: 12.00 EUR", "Other payment: 14.00 EUR"])
+        let grounded = ReceiptEvidenceValidator.validate(suggestion(total: "14.00"), rawText: fallback.rawText)
+        let result = ReceiptInterpreter.merge(grounded: grounded, fallback: fallback)
+        #expect(result.amount == nil)
+        #expect(result.merchant == "Market")
+        #expect(result.currency == "EUR")
+        #expect(result.date == localDate(2026, 10, 4))
+        #expect(result.rawText == fallback.rawText)
+        #expect(result.warnings.contains { $0.contains("disagree about the total") })
+        #expect(result.warnings.starts(with: grounded.warnings + fallback.warnings))
+    }
+
+    @Test("Fallback fields cannot resurrect amounts or currencies rejected for a currency conflict")
+    func mergeCurrencyConflict() {
+        let fallback = ReceiptParser.parse(lines: ["Market", "Total: 12.00 EUR", "Exchange: 14.00 CAD"])
+        #expect(fallback.amount == 12)
+        let grounded = ReceiptEvidenceValidator.validate(suggestion(total: "12.00", currency: "EUR"),
+            rawText: fallback.rawText)
+        let result = ReceiptInterpreter.merge(grounded: grounded, fallback: fallback)
+        #expect(result.amount == nil)
+        #expect(result.currency == nil)
+        #expect(result.warnings.contains { $0.contains("Conflicting printed currencies") })
+    }
+
+    @Test("Local category suggestions accept active custom IDs, never archived or invented categories")
+    func categorySuggestions() {
+        let custom = ExpenseCategory(id: "custom.\(UUID().uuidString)", name: "Coffee", symbol: "cup.and.saucer.fill")
+        let archived = ExpenseCategory(id: "food", name: "Food", symbol: "fork.knife", isArchived: true)
+        let categories = [custom, archived]
+        #expect(ReceiptInterpreter.acceptedCategory(custom.id, categories: categories) == custom.id)
+        #expect(ReceiptInterpreter.acceptedCategory(archived.id, categories: categories) == nil)
+        #expect(ReceiptInterpreter.acceptedCategory("invented", categories: categories) == nil)
+        #expect(ReceiptInterpreter.acceptedCategory(nil, categories: categories) == nil)
+    }
+
     @Test("Arbitrary layout does not require recognized total labels")
     func arbitraryLayout() {
         let raw = """
@@ -124,6 +186,15 @@ struct ReceiptEvidenceValidatorTests {
     func invalidCurrency(_ raw: String, _ printed: String) {
         let result = ReceiptEvidenceValidator.validate(suggestion(currency: printed), rawText: raw)
         #expect(result.currency == nil)
+    }
+
+    @Test("Metals and non-currency ISO tokens are unsupported even with monetary context",
+          arguments: ["XAU", "XXX", "XAG", "XPD", "XPT", "XTS"])
+    func unsupportedISOCode(_ printed: String) {
+        let result = ReceiptEvidenceValidator.validate(suggestion(total: "12.00", currency: printed),
+            rawText: "Pay 12.00 \(printed)")
+        #expect(result.currency == nil)
+        #expect(result.warnings.contains { $0.contains("supported printed currency") })
     }
 
     @Test("Printed multi-currency evidence leaves amount and currency unresolved")

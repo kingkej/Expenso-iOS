@@ -9,9 +9,14 @@ import SwiftUI
 import CoreData
 
 struct ExpenseFilterView: View {
+    @AppStorage(CategoryCatalog.storageKey) private var categoryData = Data()
     
     @Environment(\.dismiss) private var dismiss
-    @State private var filter: ExpenseCDFilterTime = .month
+    @State private var filter: ExpenseCDFilterTime
+    @State private var calendarAnchor = LedgerCalendarAnchor()
+    private var window: ExpenseCalendarWindow {
+        ExpenseCalendarWindow(filter: filter, now: calendarAnchor.day, calendar: calendarAnchor.calendar)
+    }
     
     var isIncome: Bool?
     var categTag: String?
@@ -25,28 +30,35 @@ struct ExpenseFilterView: View {
     
     var body: some View {
         NavigationStack {
-                VStack {
+            Group {
+                if let isIncome {
+                    InsightsContentView(initialPeriod: insightsPeriod, initialKind: isIncome ? .income : .expense)
+                } else {
                     ScrollView(showsIndicators: false) {
-                        if let isIncome = isIncome {
-                            ExpenseFilterChartView(isIncome: isIncome, filter: filter).frame(maxWidth: 350, maxHeight: 350)
-                            ExpenseFilterTransList(isIncome: isIncome, filter: filter)
+                        VStack(spacing: 16) {
+                            if let tag = categTag {
+                                Text(window.label).font(.caption).foregroundStyle(.secondary)
+                                ExpenseSummaryPair {
+                                    ExpenseModelView(isIncome: true, filter: filter, categTag: tag, window: window)
+                                    ExpenseModelView(isIncome: false, filter: filter, categTag: tag, window: window)
+                                }.frame(maxWidth: .infinity)
+                                ExpenseFilterTransList(filter: filter, tag: tag, window: window)
+                            }
                         }
-                        if let tag = categTag {
-                            HStack(spacing: 8) {
-                                ExpenseModelView(isIncome: true, filter: filter, categTag: tag)
-                                ExpenseModelView(isIncome: false, filter: filter, categTag: tag)
-                            }.frame(maxWidth: .infinity)
-                            ExpenseFilterTransList(filter: filter, tag: tag)
-                        }
-                    }.padding(.horizontal, 16)
-                }
-                .navigationTitle(categTag.map { getTransTagTitle(transTag: $0) } ?? (isIncome == true ? "Income" : "Expenses"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly)
+                        .padding(16)
                     }
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    .background(Color(uiColor: .systemGroupedBackground))
+                    .expenseScreenChrome()
+                    .navigationTitle(categTag.map { tag in CategoryCatalog.decode(categoryData).first { $0.id == tag }?.name ?? tag } ?? "Transactions")
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(.iconOnly)
+                }
+                if isIncome == nil {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             Button("Overall") { haptics.lightButtonTap(); filter = .all }
                             Button("Last 7 days") { haptics.lightButtonTap(); filter = .week }
@@ -58,61 +70,13 @@ struct ExpenseFilterView: View {
                 }
             }
         }
-}
-
-struct ExpenseFilterChartView: View {
-    
-    var isIncome: Bool
-    var type: String
-    var fetchRequest: FetchRequest<ExpenseCD>
-    var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
-    @AppStorage(CurrencySettings.key) private var baseCurrency = "RUB"
-    
-    private func getChartModel() -> [ChartModel] {
-        
-        var transactions = [String: Decimal]()
-        for i in expense {
-            let tag = i.tag ?? "unknown"
-            guard let amount = try? i.amount(in: baseCurrency),
-                  let total = try? Money.add(transactions[tag] ?? 0, amount) else { return [] }
-            transactions[tag] = total
-        }
-        
-        var models = [ChartModel]()
-        for i in transactions.sorted(by: { $0.key < $1.key }) {
-            models.append(ChartModel(transType: i.key == "unknown" ? "Unknown category" : getTransTagTitle(transTag: i.key), transAmount: NSDecimalNumber(decimal: i.value).doubleValue))
-        }
-        return models
+        .ledgerCalendarRefresh($calendarAnchor)
     }
-    
-    init(isIncome: Bool, filter: ExpenseCDFilterTime) {
-        self.isIncome = isIncome
-        self.type = isIncome ? TRANS_TYPE_INCOME : TRANS_TYPE_EXPENSE
-        let sortDescriptor = NSSortDescriptor(key: "occuredOn", ascending: false)
-        if filter == .all {
-            let predicate = NSPredicate(format: "type == %@", type)
-            fetchRequest = FetchRequest<ExpenseCD>(entity: ExpenseCD.entity(), sortDescriptors: [sortDescriptor], predicate: predicate)
-        } else {
-            var startDate: NSDate!
-            let endDate: NSDate = NSDate()
-            if filter == .week { startDate = Date().getLast7Day()! as NSDate }
-            else if filter == .month { startDate = Date().getLast30Day()! as NSDate }
-            else { startDate = Date().getLast6Month()! as NSDate }
-            let predicate = NSPredicate(format: "occuredOn >= %@ AND occuredOn <= %@ AND type == %@", startDate, endDate, type)
-            fetchRequest = FetchRequest<ExpenseCD>(entity: ExpenseCD.entity(), sortDescriptors: [sortDescriptor], predicate: predicate)
-        }
-    }
-    
-    var body: some View {
-        Group {
-            if !expense.isEmpty {
-                Text("Total \(isIncome ? "Income" : "Expense") — \(Money.totalLabel(expense, base: baseCurrency))")
-                if (try? Money.total(expense, base: baseCurrency)) != nil {
-                    PieChartView(entries: ChartModel.getTransaction(transactions: getChartModel()))
-                } else {
-                    Text("Edit transactions with missing rates before displaying a converted chart.").font(.caption).foregroundStyle(.secondary)
-                }
-            }
+    private var insightsPeriod: InsightsPeriod {
+        switch filter {
+        case .week: return .last7Days
+        case .month: return .last30Days
+        case .all: return .allTime
         }
     }
 }
@@ -121,38 +85,33 @@ struct ExpenseFilterTransList: View {
     var isIncome: Bool?
     var tag: String?
     var currentFilter: ExpenseCDFilterTime
+    let window: ExpenseCalendarWindow
     var fetchRequest: FetchRequest<ExpenseCD>
     var expense: FetchedResults<ExpenseCD> { fetchRequest.wrappedValue }
     @State private var transactionSheet: TransactionSheet?
     
-    init(isIncome: Bool? = nil, filter: ExpenseCDFilterTime, tag: String? = nil) {
+    init(isIncome: Bool? = nil, filter: ExpenseCDFilterTime, tag: String? = nil, window: ExpenseCalendarWindow? = nil) {
         self.currentFilter = filter
+        self.isIncome = isIncome
+        self.tag = tag
+        let resolvedWindow = window ?? ExpenseCalendarWindow(filter: filter)
+        self.window = resolvedWindow
         let sortDescriptor = NSSortDescriptor(key: "occuredOn", ascending: false)
         let request: NSFetchRequest<ExpenseCD> = ExpenseCD.fetchRequest() as! NSFetchRequest<ExpenseCD>
         request.sortDescriptors = [sortDescriptor]
         request.fetchBatchSize = 50
-        if filter == .all {
-            let predicate: NSPredicate!
-            if let isIncome = isIncome {
-                predicate = NSPredicate(format: "type == %@", (isIncome ? TRANS_TYPE_INCOME : TRANS_TYPE_EXPENSE))
-            } else if let tag = tag { predicate = NSPredicate(format: "tag == %@", tag) }
-            else { predicate = NSPredicate(format: "occuredOn <= %@", NSDate()) }
-            request.predicate = predicate
-        } else {
-            var startDate: NSDate!
-            let endDate: NSDate = NSDate()
-            if filter == .week { startDate = Date().getLast7Day()! as NSDate }
-            else if filter == .month { startDate = Date().getLast30Day()! as NSDate }
-            else { startDate = Date().getLast6Month()! as NSDate }
-            let predicate: NSPredicate!
-            if let isIncome = isIncome {
-                predicate = NSPredicate(format: "occuredOn >= %@ AND occuredOn <= %@ AND type == %@", startDate, endDate, (isIncome ? TRANS_TYPE_INCOME : TRANS_TYPE_EXPENSE))
-            } else if let tag = tag {
-                predicate = NSPredicate(format: "occuredOn >= %@ AND occuredOn <= %@ AND tag == %@", startDate, endDate, tag)
-            } else { predicate = NSPredicate(format: "occuredOn >= %@ AND occuredOn <= %@", startDate, endDate) }
-            request.predicate = predicate
-        }
+        var predicates = [resolvedWindow.predicate]
+        if let isIncome { predicates.append(NSPredicate(format: "type == %@", isIncome ? TRANS_TYPE_INCOME : TRANS_TYPE_EXPENSE)) }
+        if let tag { predicates.append(NSPredicate(format: "tag == %@", tag)) }
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         fetchRequest = FetchRequest<ExpenseCD>(fetchRequest: request)
+    }
+
+    private var predicate: NSPredicate {
+        var predicates = [window.predicate]
+        if let isIncome { predicates.append(NSPredicate(format: "type == %@", isIncome ? TRANS_TYPE_INCOME : TRANS_TYPE_EXPENSE)) }
+        if let tag { predicates.append(NSPredicate(format: "tag == %@", tag)) }
+        return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     }
     
     var body: some View {
@@ -169,6 +128,7 @@ struct ExpenseFilterTransList: View {
                 }
             }
         }
+        .onChange(of: window) { _, _ in expense.nsPredicate = predicate }
         .sheet(item: $transactionSheet) { destination in
             TransactionSheetView(destination: destination, filter: currentFilter)
         }

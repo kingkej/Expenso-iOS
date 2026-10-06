@@ -81,21 +81,7 @@ func getTransTagEmoji(transTag: String) -> String {
 }
 
 func getTransTagTitle(transTag: String) -> String {
-    switch transTag {
-        case TRANS_TAG_TRANSPORT: return "Transport"
-        case TRANS_TAG_FOOD: return "Food"
-        case TRANS_TAG_HOUSING: return "Housing"
-        case TRANS_TAG_INSURANCE: return "Insurance"
-        case TRANS_TAG_MEDICAL: return "Medical"
-        case TRANS_TAG_SAVINGS: return "Savings"
-        case TRANS_TAG_PERSONAL: return "Personal"
-        case TRANS_TAG_ENTERTAINMENT: return "Entertainment"
-        case TRANS_TAG_OTHERS: return "Others"
-        case TRANS_TAG_UTILITIES: return "Utilities"
-        case TRANS_TAG_CAR: return "Car"
-        case TRANS_TAG_TRAVEL: return "Travel"
-        default: return "Unknown"
-    }
+    CategoryCatalog.title(for: transTag)
 }
 
 func getDateFormatter(date: Date?, format: String = "yyyy-MM-dd") -> String {

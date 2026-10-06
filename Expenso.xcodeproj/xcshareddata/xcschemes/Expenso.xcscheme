@@ -28,6 +28,15 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference skipped = "NO" parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A26100500000000000000007"
+               BuildableName = "ExpensoUITests.xctest"
+               BlueprintName = "ExpensoUITests"
+               ReferencedContainer = "container:Expenso.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
          <TestableReference skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
