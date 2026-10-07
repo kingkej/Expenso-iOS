@@ -46,6 +46,13 @@ class AddExpenseViewModel: ObservableObject {
     
     @Published var selectedType = TRANS_TYPE_EXPENSE
     @Published var selectedTag = TRANS_TAG_TRANSPORT
+    // Preserve an unfamiliar stored value during unrelated edits and recovery.
+    // Choosing a supported method or clearing it deliberately replaces the raw value.
+    @Published private(set) var paymentMethodRawValue: String?
+    var selectedPaymentMethod: PaymentMethod? {
+        get { paymentMethodRawValue.flatMap(PaymentMethod.init(rawValue:)) }
+        set { paymentMethodRawValue = newValue?.rawValue }
+    }
     
     @Published var imageUpdated = false // When transaction edit, check if attachment is updated?
     @Published var imageAttached: UIImage? = nil
@@ -55,7 +62,7 @@ class AddExpenseViewModel: ObservableObject {
     @Published var closePresenter = false
     
     init(expenseObj: ExpenseCD? = nil, baseCurrency: String? = nil, categoryDefaults: UserDefaults = .standard,
-         rateService: ExchangeRateService = .shared) {
+         rateService: ExchangeRateService = .shared, paymentMethod: String? = nil) {
         self.rateService = rateService
         let initialDate = expenseObj?.occuredOn ?? Date()
         let initialCategory = expenseObj?.tag ?? CategoryCatalog.load(defaults: categoryDefaults).first(where: { !$0.isArchived })?.id ?? TRANS_TAG_TRANSPORT
@@ -84,6 +91,7 @@ class AddExpenseViewModel: ObservableObject {
         self.tagTitle = getTransTagTitle(transTag: expenseObj?.tag ?? TRANS_TAG_TRANSPORT)
         self.selectedType = expenseObj?.type ?? TRANS_TYPE_EXPENSE
         self.selectedTag = initialCategory
+        self.paymentMethodRawValue = expenseObj.map { $0.supportsPaymentMethod ? $0.paymentMethod : nil } ?? paymentMethod
         
     }
     
@@ -128,6 +136,7 @@ class AddExpenseViewModel: ObservableObject {
             && currency == initialDraftCurrency && conversionCurrency == initialDraftCurrency
             && occuredOn == initialDraftDate && selectedType == TRANS_TYPE_EXPENSE
             && selectedTag == initialDraftCategory && !useManualRate && manualRate.isEmpty
+            && paymentMethodRawValue == nil
             && imageAttached == nil && !imageUpdated
     }
 
@@ -151,7 +160,8 @@ class AddExpenseViewModel: ObservableObject {
     }
 
     /// Receipt suggestions replace only reviewed fields, never save the ledger.
-    func applyReceipt(title: String, amount: String, currency: String, date: Date?, type: String, image: UIImage?) {
+    func applyReceipt(title: String, amount: String, currency: String, date: Date?, type: String, image: UIImage?,
+                      paymentMethod: PaymentMethod? = nil, replacePaymentMethod: Bool = false) {
         let nextDate = date ?? occuredOn
         if self.currency != currency || Money.day(occuredOn) != Money.day(nextDate) {
             rateRequestID = nil
@@ -171,6 +181,10 @@ class AddExpenseViewModel: ObservableObject {
         occuredOn = nextDate
         selectedType = type
         typeTitle = type == TRANS_TYPE_INCOME ? "Income" : "Expense"
+        // Suggestions fill an empty field. Only an explicit review choice may replace or clear it.
+        if replacePaymentMethod || paymentMethodRawValue == nil {
+            selectedPaymentMethod = paymentMethod
+        }
         if let image {
             imageAttached = image
             imageUpdated = true
@@ -345,8 +359,13 @@ class AddExpenseViewModel: ObservableObject {
         let amountValue: Decimal
         let snapshotData: Data?
         var attachmentData = expenseObj?.imageAttached
-        let supportsMetadata = NSEntityDescription.entity(forEntityName: "ExpenseCD", in: managedObjectContext)?.attributesByName["currencyCode"] != nil
+        guard let entity = NSEntityDescription.entity(forEntityName: "ExpenseCD", in: managedObjectContext) else {
+            alertMsg = MoneyError.schemaNotReady.localizedDescription; showAlert = true; return
+        }
+        let supportsMetadata = entity.attributesByName["currencyCode"] != nil
+        let supportsPaymentMethod = entity.attributesByName["paymentMethod"] != nil
         do {
+            guard supportsPaymentMethod || paymentMethodRawValue == nil else { throw MoneyError.schemaNotReady }
             guard CurrencySettings.codes.contains(currency) else { throw MoneyError.missingRate }
             // Keep ordinary RUB editing usable while V2 activation is awaiting approval.
             guard supportsMetadata || (currency == "RUB" && baseCurrency == "RUB"
@@ -394,11 +413,12 @@ class AddExpenseViewModel: ObservableObject {
         }
         let keys = ["updatedAt", "type", "title", "tag", "occuredOn", "note", "amount", "imageAttached"]
             + (supportsMetadata ? ["amountText", "currencyCode", "rateSnapshotData"] : [])
+            + (supportsPaymentMethod ? ["paymentMethod"] : [])
         let oldValues = expenseObj?.dictionaryWithValues(forKeys: keys)
         if expenseObj != nil {
             expense = expenseObj!
         } else {
-            expense = ExpenseCD(context: managedObjectContext)
+            expense = ExpenseCD(entity: entity, insertInto: managedObjectContext)
             expense.createdAt = Date()
         }
         expense.imageAttached = attachmentData
@@ -409,6 +429,7 @@ class AddExpenseViewModel: ObservableObject {
         expense.occuredOn = occuredOn
         expense.note = note
         expense.amount = NSDecimalNumber(decimal: amountValue).doubleValue
+        if supportsPaymentMethod { expense.paymentMethod = paymentMethodRawValue }
         if supportsMetadata {
             expense.amountText = Money.string(amountValue)
             expense.currencyCode = currency

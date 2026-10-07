@@ -17,10 +17,12 @@ struct LedgerRecord: Codable, Equatable, Sendable {
     let currencyCode: String?
     let amountText: String?
     let rateSnapshotData: Data?
+    // Optional encoding preserves the original checksums of v1/v2 archives.
+    let paymentMethod: String?
 
     var retainedByteCount: Int {
         (imageAttached?.count ?? 0) + (rateSnapshotData?.count ?? 0)
-            + [id, type, title, tag, note, currencyCode, amountText].compactMap { $0 }.reduce(0) { $0 + $1.utf8.count }
+            + [id, type, title, tag, note, currencyCode, amountText, paymentMethod].compactMap { $0 }.reduce(0) { $0 + $1.utf8.count }
     }
 
     @MainActor
@@ -38,6 +40,7 @@ struct LedgerRecord: Codable, Equatable, Sendable {
         currencyCode = record.supportsCurrencyMetadata ? record.currencyCode : nil
         amountText = record.supportsCurrencyMetadata ? record.amountText : nil
         rateSnapshotData = record.supportsCurrencyMetadata ? record.rateSnapshotData : nil
+        paymentMethod = record.supportsPaymentMethod ? record.paymentMethod : nil
     }
 
     @MainActor
@@ -56,6 +59,7 @@ struct LedgerRecord: Codable, Equatable, Sendable {
             record.amountText = amountText
             record.rateSnapshotData = rateSnapshotData
         }
+        if record.supportsPaymentMethod { record.paymentMethod = paymentMethod }
     }
 }
 

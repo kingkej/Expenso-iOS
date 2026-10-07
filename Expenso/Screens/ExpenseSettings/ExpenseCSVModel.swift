@@ -17,6 +17,7 @@ class ExpenseCSVModel: NSObject {
     var rateDate: String = ""
     var rateSource: String = ""
     var transactionType: String = ""
+    var paymentMethod: String = ""
     var tag: String = ""
     var occuredOn: String = ""
     var note: String = ""

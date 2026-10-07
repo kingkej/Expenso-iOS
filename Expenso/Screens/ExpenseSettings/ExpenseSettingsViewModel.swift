@@ -202,6 +202,7 @@ class ExpenseSettingsViewModel: ObservableObject {
                     csvModel.rateDate = i.lockedRates?.date ?? ""
                     csvModel.rateSource = i.lockedRates?.exportSource ?? "No conversion"
                     csvModel.transactionType = "\(i.type == TRANS_TYPE_INCOME ? "INCOME" : "EXPENSE")"
+                    csvModel.paymentMethod = i.paymentMethodValue?.title ?? (i.supportsPaymentMethod ? i.paymentMethod ?? "" : "")
                     csvModel.tag = getTransTagTitle(transTag: i.tag ?? "")
                     csvModel.occuredOn = "\(getDateFormatter(date: i.occuredOn, format: "yyyy-MM-dd hh:mm a"))"
                     csvModel.note = i.note ?? ""
@@ -212,20 +213,23 @@ class ExpenseSettingsViewModel: ObservableObject {
         } catch { alertMsg = "\(error)"; showAlert = true }
     }
     
-    func generateCSV() {
-        let fileName = "Expense.csv"
-        let path = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-        var csvText = "\u{FEFF}Title,Original Amount,Original Currency,Base Amount,Base Currency,Locked Rate,Rate Date,Rate Source,Type,Tag,Occured On,Note\n"
+    func csvContents() -> String {
+        var csvText = "\u{FEFF}Title,Original Amount,Original Currency,Base Amount,Base Currency,Locked Rate,Rate Date,Rate Source,Type,Tag,Occured On,Note,Payment Method\n"
 
         for csvModel in csvModelArr {
             let fields = [csvModel.title, csvModel.amount, csvModel.originalCurrency, csvModel.baseAmount,
                           csvModel.baseCurrency, csvModel.lockedRate, csvModel.rateDate, csvModel.rateSource,
-                          csvModel.transactionType, csvModel.tag, csvModel.occuredOn, csvModel.note]
+                          csvModel.transactionType, csvModel.tag, csvModel.occuredOn, csvModel.note, csvModel.paymentMethod]
             csvText.append(fields.map { "\"\($0.replacingOccurrences(of: "\"", with: "\"\""))\"" }.joined(separator: ",") + "\n")
         }
+        return csvText
+    }
 
+    func generateCSV() {
+        let fileName = "Expense.csv"
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         do {
-            try csvText.write(to: path, atomically: true, encoding: .utf8)
+            try csvContents().write(to: path, atomically: true, encoding: .utf8)
             let av = UIActivityViewController(activityItems: [path], applicationActivities: nil)
             DispatchQueue.main.async {
                 guard let presenter = topMostViewController() else { return }

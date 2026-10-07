@@ -29,6 +29,7 @@ struct LedgerBackupTests {
         record.imageAttached = Data([0, 1, 2, 0xff])
         record.createdAt = Date(timeIntervalSinceReferenceDate: 12345.123456789)
         record.updatedAt = Date(timeIntervalSinceReferenceDate: 22345.987654321)
+        record.paymentMethod = PaymentMethod.card.rawValue
         return record
     }
 
@@ -44,6 +45,7 @@ struct LedgerBackupTests {
         legacy.tag = "Unknown old tag"
         legacy.type = "Unknown old type"
         legacy.rateSnapshotData = Data([0xff, 0x00]) // Preserve malformed old bytes, never silently repair.
+        legacy.paymentMethod = "Unknown future method"
         try store.context.save()
         let payload = try LedgerBackupService.capture(context: store.context, defaults: preferences.defaults)
         let decoded = try LedgerBackupCodec.decode(LedgerBackupCodec.encode(payload))
@@ -61,7 +63,8 @@ struct LedgerBackupTests {
         _ = try fixture(source)
         try source.context.save()
         let payload = try LedgerBackupService.capture(context: source.context, defaults: preferences.defaults)
-        _ = try target.transaction(amount: "55", currency: "RUB")
+        let previousRecord = try target.transaction(amount: "55", currency: "RUB")
+        previousRecord.paymentMethod = PaymentMethod.crypto.rawValue
         try target.context.save()
         let before = try LedgerBackupService.capture(context: target.context, defaults: preferences.defaults)
         preferences.defaults.set(true, forKey: UD_USE_BIOMETRIC)

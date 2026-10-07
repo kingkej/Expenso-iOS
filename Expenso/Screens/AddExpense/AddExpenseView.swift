@@ -49,6 +49,13 @@ struct AddExpenseView: View {
                         ExpenseValueRow(title: "Currency") { Text(viewModel.currency).foregroundStyle(.primary) }
                     }
                     transactionTypePicker
+                    ExpenseMenuRow(title: "Payment Method", value: viewModel.selectedPaymentMethod?.title ?? "Not specified") {
+                        Button("Not specified") { viewModel.selectedPaymentMethod = nil }
+                        ForEach(PaymentMethod.allCases, id: \.self) { method in
+                            Button(method.title) { viewModel.selectedPaymentMethod = method }
+                        }
+                    }
+                    .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
                     ExpenseMenuRow(title: "Category", value: categories.first(where: { $0.id == viewModel.selectedTag })?.name ?? "Choose Category",
                         symbol: categories.first(where: { $0.id == viewModel.selectedTag })?.symbol) {
                         ForEach(categories) { category in

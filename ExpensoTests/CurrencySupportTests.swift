@@ -456,7 +456,7 @@ final class CurrencyTestStore {
     let coordinator: NSPersistentStoreCoordinator
     let context: NSManagedObjectContext
 
-    init(version: String = "ExpensoV2") throws {
+    init(version: String = "ExpensoV3") throws {
         let model = try Self.model(version: version)
         coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
         try coordinator.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil)

@@ -66,6 +66,81 @@ struct ReceiptEvidenceValidatorTests {
         #expect(ReceiptInterpreter.acceptedCategory(nil, categories: categories) == nil)
     }
 
+    @Test("One mocked on-device metadata pass returns category and a supported payment method",
+          arguments: ["card", "crypto", "cash"])
+    func metadataSuggestions(_ method: String) async throws {
+        let category = ExpenseCategory(id: "food", name: "Food", symbol: "fork.knife")
+        let result = try await ReceiptInterpreter.suggestMetadata(text: "Receipt fixture", categories: [category]) { instructions, prompt in
+            #expect(instructions.contains("paymentMethod") && instructions.contains("untrusted data"))
+            #expect(instructions.contains("Buying crypto with an explicitly used card is card"))
+            #expect(instructions.contains("mixed") && instructions.contains("cash withdrawal"))
+            #expect(prompt.contains("Receipt fixture") && prompt.contains("food"))
+            return (categoryID: "food", paymentMethod: method)
+        }
+        #expect(result.categoryID == "food" && result.paymentMethod?.rawValue == method)
+    }
+
+    @Test("Missing or unsupported on-device payment metadata leaves a valid category unchanged")
+    func invalidMetadataPaymentSuggestions() async throws {
+        let category = ExpenseCategory(id: "food", name: "Food", symbol: "fork.knife")
+        for method in [nil, "", "wire", "Card", "card,cash"] as [String?] {
+            let result = try await ReceiptInterpreter.suggestMetadata(text: "Receipt fixture", categories: [category]) { _, _ in
+                (categoryID: "food", paymentMethod: method)
+            }
+            #expect(result.categoryID == "food" && result.paymentMethod == nil)
+        }
+    }
+
+    @Test("Empty and unusable category catalogues still permit a payment suggestion",
+          arguments: ["empty", "archived", "too-many", "too-large"])
+    func paymentSuggestionWithoutCategories(_ scenario: String) async throws {
+        let categories: [ExpenseCategory]
+        switch scenario {
+        case "archived":
+            categories = [ExpenseCategory(id: "food", name: "Food", symbol: "fork.knife", isArchived: true)]
+        case "too-many":
+            categories = (0..<101).map { ExpenseCategory(id: "\($0)", name: "Food", symbol: "fork.knife") }
+        case "too-large":
+            categories = [ExpenseCategory(id: "food", name: String(repeating: "a", count: 4_001), symbol: "fork.knife")]
+        default: categories = []
+        }
+        let result = try await ReceiptInterpreter.suggestMetadata(text: "Receipt fixture", categories: categories) { _, prompt in
+            #expect(prompt.hasPrefix("Categories:\n[]\n"))
+            return (categoryID: "food", paymentMethod: "cash")
+        }
+        #expect(result.categoryID == nil && result.paymentMethod == .cash)
+    }
+
+    @Test("An unavailable metadata result leaves both optional suggestions empty")
+    func metadataFailure() async throws {
+        struct FixtureFailure: Error {}
+        let result = try await ReceiptInterpreter.suggestMetadata(text: "Receipt fixture", categories: []) { _, _ in
+            throw FixtureFailure()
+        }
+        #expect(result.categoryID == nil && result.paymentMethod == nil)
+    }
+
+    @Test("Oversized OCR text does not invoke metadata inference")
+    func metadataInputBound() async throws {
+        let result = try await ReceiptInterpreter.suggestMetadata(text: String(repeating: "a", count: 6_001), categories: []) { _, _ in
+            Issue.record("Oversized OCR text must not invoke metadata inference")
+            return (nil, "card")
+        }
+        #expect(result.categoryID == nil && result.paymentMethod == nil)
+    }
+
+    @Test("Cancellation during metadata inference never publishes a suggestion")
+    func metadataCancellation() async throws {
+        let task = Task {
+            try await ReceiptInterpreter.suggestMetadata(text: "Receipt fixture", categories: []) { _, _ in
+                withUnsafeCurrentTask { $0?.cancel() }
+                return (nil, "card")
+            }
+        }
+        do { _ = try await task.value; Issue.record("Expected cancellation") }
+        catch { #expect(error is CancellationError) }
+    }
+
     @Test("Arbitrary layout does not require recognized total labels")
     func arbitraryLayout() {
         let raw = """

@@ -198,7 +198,7 @@ final class ReceiptImportModel {
                     self.preparedImage = prepared
                 } else {
                     let payload = try await ReceiptScanner.shared.recognize(data: data)
-                    let category = try await ReceiptInterpreter.suggestCategory(text: payload.extraction.rawText,
+                    let metadata = try await ReceiptInterpreter.suggestMetadata(text: payload.extraction.rawText,
                         categories: CategoryCatalog.load())
                     try Task.checkCancellation()
                     guard let self, self.requestID == id, OpenRouterSettings.shared.revision == revision else { return }
@@ -206,8 +206,8 @@ final class ReceiptImportModel {
                     self.remoteResult = RemoteImageTransactions(imageData: payload.imageData,
                         transactions: [RemoteImageTransaction(title: fields.merchant,
                             amount: fields.amount.map(Money.string), currency: fields.currency,
-                            date: fields.date, type: TRANS_TYPE_EXPENSE, category: category,
-                            warnings: fields.warnings)], warnings: [])
+                            date: fields.date, type: TRANS_TYPE_EXPENSE, category: metadata.categoryID,
+                            paymentMethod: metadata.paymentMethod, warnings: fields.warnings)], warnings: [])
                 }
                 guard let self, self.requestID == id else { return }
                 self.isReading = false

@@ -137,6 +137,74 @@ struct RemoteReceiptInferenceTests {
     }
     private let row = #"{"title":"аренда","amount":"59500.00","currency":"RUB","date":"2026-10-04","type":"expense","category":"travel","warnings":[]}"#
 
+    @Test("Optional malformed payment metadata never rejects or changes a valid transaction",
+          arguments: ["missing", "null", #""wire""#, #""Card""#, "\"\"", "42", "true", "{}", #"["card","cash"]"#])
+    func optionalPaymentMethodValidation(_ value: String) throws {
+        let baseline = try RemoteReceiptInference.decode(reply(row), imageData: jpeg, categories: CategoryCatalog.defaults).transactions[0]
+        let candidate = value == "missing" ? row : String(row.dropLast()) + ",\"paymentMethod\":\(value)}"
+        let transaction = try RemoteReceiptInference.decode(reply(candidate), imageData: jpeg, categories: CategoryCatalog.defaults).transactions[0]
+        #expect(transaction.paymentMethod == nil)
+        #expect(transaction.title == baseline.title && transaction.amount == baseline.amount)
+        #expect(transaction.currency == baseline.currency && transaction.date == baseline.date)
+        #expect(transaction.type == baseline.type && transaction.category == baseline.category)
+        #expect(transaction.warnings == baseline.warnings)
+    }
+
+    @Test("Bank-message fixture keeps the AI card suggestion and the original purchase amount")
+    func bankMessagePaymentSuggestion() async throws {
+        let input = #"Karta *7177. Xarid/Pokupka "Konzum BIH P-153>MOS", -0.85, BAM, "07-10-2026 19:08". Dostupno: 119.41, USD."#
+        let expected = reply(#"{"title":"Konzum BIH P-153>MOS","amount":"0.85","currency":"BAM","date":"2026-10-07","type":"expense","category":null,"paymentMethod":"card","warnings":[]}"#)
+        let service = RemoteReceiptInference(textCompletion: { _, _, messages in
+            #expect(messages.last?.content == input)
+            return expected
+        })
+        let result = try await service.extract(text: input, apiKey: "fixture-only", categories: [])
+        let transaction = try #require(result.transactions.first)
+        #expect(result.transactions.count == 1 && result.sourceText == input)
+        #expect(transaction.paymentMethod == .card && transaction.amount == "0.85")
+        #expect(transaction.currency == "BAM" && transaction.type == TRANS_TYPE_EXPENSE)
+        #expect(transaction.date.map(Money.day) == "2026-10-07" && transaction.warnings.isEmpty)
+    }
+
+    @Test("Both remote paths preserve independent card, crypto, cash and unspecified decisions", arguments: ["image", "text"])
+    func independentPaymentSuggestions(_ source: String) async throws {
+        let rows = [
+            ("Crypto bought with card", #""card""#),
+            ("Purchase paid with crypto", #""crypto""#),
+            ("Purchase paid with cash", #""cash""#),
+            ("Cash withdrawal then an unspecified purchase", "null"),
+            ("Mixed cash and card payment", "null"),
+            ("Ordinary merchant with currency only", "null")
+        ].map { title, method in
+            #"{"title":"\#(title)","amount":"10","currency":"EUR","date":"2026-10-07","type":"expense","category":null,"paymentMethod":\#(method),"warnings":[]}"#
+        }
+        let expected = reply(rows.joined(separator: ","))
+        let validate: @Sendable ([OpenRouterMessage]) throws -> Void = { messages in
+            let system = try #require(messages.first?.content)
+            #expect(system.contains("paymentMethod") && system.contains("independently for each transaction"))
+            #expect(system.contains("purchasing crypto with an explicitly used card is card"))
+            #expect(system.contains("cash withdrawal") && system.contains("merchant name or currency alone"))
+            #expect(system.contains("mixed") && system.contains("use null without adding a warning"))
+        }
+        let service = RemoteReceiptInference(completion: { _, _, messages, _ in
+            #expect(source == "image")
+            try validate(messages)
+            return expected
+        }, textCompletion: { _, _, messages in
+            #expect(source == "text")
+            try validate(messages)
+            return expected
+        })
+        let result: RemoteImageTransactions
+        if source == "image" {
+            result = try await service.extract(imageData: jpeg, apiKey: "fixture-only", categories: [])
+        } else {
+            result = try await service.extract(text: "Independent transaction fixture", apiKey: "fixture-only", categories: [])
+        }
+        #expect(result.transactions.map(\.paymentMethod) == [.card, .crypto, .cash, nil, nil, nil])
+        #expect(result.transactions.allSatisfy { $0.warnings.isEmpty && $0.category == nil && $0.amount == "10" })
+    }
+
     @Test func screenshotMultipleTransactions() throws {
         let incoming = #"{"title":"Refund","amount":"12.50","currency":"EUR","date":"2026-10-03","type":"income","category":null,"warnings":[]}"#
         let result = try RemoteReceiptInference.decode(reply(row + "," + incoming), imageData: jpeg, categories: CategoryCatalog.defaults)

@@ -97,7 +97,7 @@ struct CategoryCatalogTests {
         try store.context.save()
         let payload = try LedgerBackupCodec.decode(LedgerBackupCodec.encode(
             LedgerBackupService.capture(context: store.context, defaults: preferences)))
-        #expect(payload.version == 2)
+        #expect(payload.version == 3)
         try CategoryCatalog.save(CategoryCatalog.defaults, defaults: preferences)
         let recovery = try await LedgerBackupService.restore(payload, context: store.context,
             defaults: preferences, recoveryDirectory: directory)
