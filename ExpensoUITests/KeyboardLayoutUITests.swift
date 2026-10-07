@@ -18,6 +18,45 @@ final class KeyboardLayoutUITests: XCTestCase {
         try exerciseReceiptClipboardPaste(useTextSelectionMenu: true)
     }
 
+    func testPaymentMethodMenuAndDraftCancellation() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.navigationBars["Dashboard"]
+        XCTAssertTrue(dashboard.waitForExistence(timeout: 15))
+        app.buttons["Add Transaction"].tap()
+        let editor = app.navigationBars["New Transaction"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+
+        let payment = app.buttons["Payment Method"]
+        XCTAssertTrue(payment.waitForExistence(timeout: 5) && payment.isHittable)
+        XCTAssertEqual(payment.value as? String, "Not specified")
+        for method in ["Card", "Crypto", "Cash", "Not specified", "Card"] {
+            payment.tap()
+            let choice = app.buttons[method]
+            XCTAssertTrue(choice.waitForExistence(timeout: 5) && choice.isHittable)
+            choice.tap()
+            let selected = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "value == %@", method), object: payment)
+            XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
+        }
+
+        app.buttons["Scan Receipt or Screenshot"].tap()
+        let importHeader = app.navigationBars["Import"]
+        XCTAssertTrue(importHeader.waitForExistence(timeout: 5))
+        importHeader.buttons["Cancel"].tap()
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        XCTAssertEqual(payment.value as? String, "Card", "Canceling import must preserve the draft's selection.")
+        editor.buttons["Cancel"].tap()
+        XCTAssertTrue(dashboard.waitForExistence(timeout: 5))
+        app.buttons["Add Transaction"].tap()
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        XCTAssertEqual(payment.value as? String, "Not specified", "A canceled draft must not set a default for new transactions.")
+        editor.buttons["Cancel"].tap()
+        XCTAssertTrue(dashboard.waitForExistence(timeout: 5))
+    }
+
     private func exerciseReceiptClipboardPaste(useTextSelectionMenu: Bool) throws {
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]

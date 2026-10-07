@@ -56,5 +56,6 @@ The implementation approval includes the focused simulator checks and build belo
 - A context-specific entity lookup removed Core Data ambiguity exposed by loading multiple model versions in the tests. The 44 affected editor, draft, category, and currency checks all passed after that final adjustment.
 - Release simulator build passed. Existing deprecation warnings in unrelated helper files remain.
 - Independent local review completed with no remaining actionable findings. An identified unknown-value preservation issue was fixed and covered before completion.
-- Live AI inference, candidate navigation/menu interaction, and physical-device behavior were not exercised. AI tests use mocked collaborators and establish response handling, not model accuracy.
+- A focused XCTest UI check passed on the isolated simulator app: all four payment menu choices, clearing, import cancellation preserving the selection, and canceled drafts leaving new transactions unspecified.
+- Live AI inference, candidate-to-candidate navigation, and physical-device behavior were not exercised. AI tests use mocked collaborators and establish response handling, not model accuracy.
 - No deployment performed.
