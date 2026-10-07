@@ -14,6 +14,7 @@ struct LedgerMutationTests {
         record.imageAttached = Data([1, 0, 0xff])
         record.createdAt = Date(timeIntervalSinceReferenceDate: 0.123456)
         record.updatedAt = nil
+        record.paymentMethod = "Unknown future method"
         try store.context.save()
         let before = LedgerRecord(record)
         let mutations = LedgerMutationService()

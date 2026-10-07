@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        B26100700000000000000101 /* PaymentMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26100700000000000000111; };
+        B26100700000000000000102 /* PaymentMethodStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26100700000000000000112; };
         A26100500000000000000001 /* KeyboardLayoutUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26100500000000000000002 /* KeyboardLayoutUITests.swift */; };
         F26010050000000000001601 /* SpendingExplorationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001611; };
         F26010050000000000001401 /* RemoteReceiptInference.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26010050000000000001411; };
@@ -135,6 +137,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        B26100700000000000000111 /* PaymentMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethod.swift; sourceTree = "<group>"; };
+        B26100700000000000000112 /* PaymentMethodStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethodStorageTests.swift; sourceTree = "<group>"; };
+        B26100700000000000000113 /* ExpensoV3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ExpensoV3.xcdatamodel; sourceTree = "<group>"; };
         A26100500000000000000002 /* KeyboardLayoutUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayoutUITests.swift; sourceTree = "<group>"; };
         A26100500000000000000004 /* ExpensoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExpensoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
         F26010050000000000001611 /* SpendingExplorationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendingExplorationTests.swift; sourceTree = "<group>"; };
@@ -265,7 +270,7 @@
         };
         F26010040000000000000020 /* ExpensoTests */ = {
             isa = PBXGroup;
-            children = (F26010040000000000000011 /* CurrencySupportTests.swift */, F26010040000000000000012 /* ExchangeRateServiceTests.swift */, A26010040000000000000114 /* ReceiptParserTests.swift */, A26010040000000000000213 /* ReceiptEvidenceValidatorTests.swift */, A26010040000000000000311 /* OwnerLedgerMigrationTests.swift */, B26010040000000000000417 /* LedgerBackupTests.swift */, B26010040000000000000418 /* LedgerMutationTests.swift */, B26010040000000000000419 /* TransactionHistoryFilterTests.swift */, C26010040000000000000513 /* CategoryCatalogTests.swift */, D26010040000000000000613 /* InsightsAnalyticsTests.swift */, E26010050000000000000812 /* CurrencyPickerTests.swift */, F26010050000000000000911 /* SummaryCardLayoutTests.swift */, F26010050000000000001114 /* OpenRouterClientTests.swift */, F26010050000000000001115 /* OpenRouterSpendingTests.swift */, F26010050000000000001213 /* SpendingChatHistoryTests.swift */, F26010050000000000001313 /* SpendingClassificationTests.swift */, F26010050000000000001314 /* SpendingClassificationSafetyTests.swift */, F26010050000000000001413 /* RemoteReceiptInferenceTests.swift */, F26010050000000000001611 /* SpendingExplorationTests.swift */);
+            children = (B26100700000000000000112 /* PaymentMethodStorageTests.swift */, F26010040000000000000011 /* CurrencySupportTests.swift */, F26010040000000000000012 /* ExchangeRateServiceTests.swift */, A26010040000000000000114 /* ReceiptParserTests.swift */, A26010040000000000000213 /* ReceiptEvidenceValidatorTests.swift */, A26010040000000000000311 /* OwnerLedgerMigrationTests.swift */, B26010040000000000000417 /* LedgerBackupTests.swift */, B26010040000000000000418 /* LedgerMutationTests.swift */, B26010040000000000000419 /* TransactionHistoryFilterTests.swift */, C26010040000000000000513 /* CategoryCatalogTests.swift */, D26010040000000000000613 /* InsightsAnalyticsTests.swift */, E26010050000000000000812 /* CurrencyPickerTests.swift */, F26010050000000000000911 /* SummaryCardLayoutTests.swift */, F26010050000000000001114 /* OpenRouterClientTests.swift */, F26010050000000000001115 /* OpenRouterSpendingTests.swift */, F26010050000000000001213 /* SpendingChatHistoryTests.swift */, F26010050000000000001313 /* SpendingClassificationTests.swift */, F26010050000000000001314 /* SpendingClassificationSafetyTests.swift */, F26010050000000000001413 /* RemoteReceiptInferenceTests.swift */, F26010050000000000001611 /* SpendingExplorationTests.swift */);
             path = ExpensoTests;
             sourceTree = "<group>";
         };
@@ -517,6 +522,7 @@
 			isa = PBXGroup;
 			children = (
                 E26010040000000000000013 /* SpendingDataStore.swift */,
+                B26100700000000000000111 /* PaymentMethod.swift */,
                 B26010040000000000000411 /* LedgerRecord.swift */,
                 C26010040000000000000511 /* CategoryCatalog.swift */,
                 D26010040000000000000611 /* InsightsAnalytics.swift */,
@@ -662,7 +668,7 @@
         F26010040000000000000040 /* Sources */ = {
             isa = PBXSourcesBuildPhase;
             buildActionMask = 2147483647;
-            files = (F26010040000000000000001 /* CurrencySupportTests.swift in Sources */, F26010040000000000000002 /* ExchangeRateServiceTests.swift in Sources */, A26010040000000000000104 /* ReceiptParserTests.swift in Sources */, A26010040000000000000203 /* ReceiptEvidenceValidatorTests.swift in Sources */, A26010040000000000000301 /* OwnerLedgerMigrationTests.swift in Sources */, B26010040000000000000407 /* LedgerBackupTests.swift in Sources */, B26010040000000000000408 /* LedgerMutationTests.swift in Sources */, B26010040000000000000409 /* TransactionHistoryFilterTests.swift in Sources */, C26010040000000000000503 /* CategoryCatalogTests.swift in Sources */, D26010040000000000000603 /* InsightsAnalyticsTests.swift in Sources */, E26010050000000000000802 /* CurrencyPickerTests.swift in Sources */, F26010050000000000000901 /* SummaryCardLayoutTests.swift in Sources */, F26010050000000000001104 /* OpenRouterClientTests.swift in Sources */, F26010050000000000001105 /* OpenRouterSpendingTests.swift in Sources */, F26010050000000000001203 /* SpendingChatHistoryTests.swift in Sources */, F26010050000000000001303 /* SpendingClassificationTests.swift in Sources */, F26010050000000000001304 /* SpendingClassificationSafetyTests.swift in Sources */, F26010050000000000001403 /* RemoteReceiptInferenceTests.swift in Sources */, F26010050000000000001601 /* SpendingExplorationTests.swift in Sources */);
+            files = (B26100700000000000000102 /* PaymentMethodStorageTests.swift in Sources */, F26010040000000000000001 /* CurrencySupportTests.swift in Sources */, F26010040000000000000002 /* ExchangeRateServiceTests.swift in Sources */, A26010040000000000000104 /* ReceiptParserTests.swift in Sources */, A26010040000000000000203 /* ReceiptEvidenceValidatorTests.swift in Sources */, A26010040000000000000301 /* OwnerLedgerMigrationTests.swift in Sources */, B26010040000000000000407 /* LedgerBackupTests.swift in Sources */, B26010040000000000000408 /* LedgerMutationTests.swift in Sources */, B26010040000000000000409 /* TransactionHistoryFilterTests.swift in Sources */, C26010040000000000000503 /* CategoryCatalogTests.swift in Sources */, D26010040000000000000603 /* InsightsAnalyticsTests.swift in Sources */, E26010050000000000000802 /* CurrencyPickerTests.swift in Sources */, F26010050000000000000901 /* SummaryCardLayoutTests.swift in Sources */, F26010050000000000001104 /* OpenRouterClientTests.swift in Sources */, F26010050000000000001105 /* OpenRouterSpendingTests.swift in Sources */, F26010050000000000001203 /* SpendingChatHistoryTests.swift in Sources */, F26010050000000000001303 /* SpendingClassificationTests.swift in Sources */, F26010050000000000001304 /* SpendingClassificationSafetyTests.swift in Sources */, F26010050000000000001403 /* RemoteReceiptInferenceTests.swift in Sources */, F26010050000000000001601 /* SpendingExplorationTests.swift in Sources */);
             runOnlyForDeploymentPostprocessing = 0;
         };
 		738B1C1025C65DFE0067407B /* Sources */ = {
@@ -670,6 +676,7 @@
 			buildActionMask = 2147483647;
 			files = (
                 E26010040000000000000001 /* SpendingChatView.swift in Sources */,
+                B26100700000000000000101 /* PaymentMethod.swift in Sources */,
                 B26010040000000000000401 /* LedgerRecord.swift in Sources */,
                 C26010040000000000000501 /* CategoryCatalog.swift in Sources */,
                 D26010040000000000000601 /* InsightsAnalytics.swift in Sources */,
@@ -1087,10 +1094,11 @@
 		738B1C2225C65E060067407B /* Expenso.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				B26100700000000000000113 /* ExpensoV3.xcdatamodel */,
 				E26010040000000000000016 /* ExpensoV2.xcdatamodel */,
 				738B1C2325C65E060067407B /* Expenso.xcdatamodel */,
 			);
-			currentVersion = E26010040000000000000016 /* ExpensoV2.xcdatamodel */;
+			currentVersion = B26100700000000000000113 /* ExpensoV3.xcdatamodel */;
 			path = Expenso.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

@@ -135,7 +135,7 @@ enum MoneyError: LocalizedError {
         case .invalidAmount: return "Enter a valid, nonnegative amount using a decimal point or comma."
         case .missingRate: return "A locked exchange rate is missing for this currency. Edit the transaction to fetch a daily rate or enter a manual rate."
         case .overflow: return "The converted amount is too large."
-        case .schemaNotReady: return "The multi-currency storage upgrade has not been enabled yet."
+        case .schemaNotReady: return "The transaction storage upgrade has not been enabled yet."
         case .concurrentEdit: return "This transaction changed in another window. Close and reopen the editor before saving."
         }
     }
@@ -156,6 +156,7 @@ struct TransactionRevision: Equatable {
     let currency: String?
     let amountText: String?
     let rateData: Data?
+    let paymentMethod: String?
 
     init(_ transaction: ExpenseCD) {
         id = transaction.objectID
@@ -171,6 +172,7 @@ struct TransactionRevision: Equatable {
         currency = transaction.supportsCurrencyMetadata ? transaction.currencyCode : nil
         amountText = transaction.supportsCurrencyMetadata ? transaction.amountText : nil
         rateData = transaction.supportsCurrencyMetadata ? transaction.rateSnapshotData : nil
+        paymentMethod = transaction.supportsPaymentMethod ? transaction.paymentMethod : nil
     }
 }
 

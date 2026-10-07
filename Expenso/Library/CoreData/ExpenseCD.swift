@@ -33,9 +33,17 @@ public class ExpenseCD: NSManagedObject, Identifiable {
     @NSManaged public var currencyCode: String?
     @NSManaged public var amountText: String?
     @NSManaged public var rateSnapshotData: Data?
+    @NSManaged public var paymentMethod: String?
 }
 
 extension ExpenseCD {
+    var supportsPaymentMethod: Bool { entity.attributesByName["paymentMethod"] != nil }
+
+    var paymentMethodValue: PaymentMethod? {
+        guard supportsPaymentMethod, let paymentMethod else { return nil }
+        return PaymentMethod(rawValue: paymentMethod)
+    }
+
     static func getAllExpenseData(sortBy: ExpenseCDSort = .occuredOn, ascending: Bool = true, filterTime: ExpenseCDFilterTime = .all) -> NSFetchRequest<ExpenseCD> {
         let request: NSFetchRequest<ExpenseCD> = ExpenseCD.fetchRequest() as! NSFetchRequest<ExpenseCD>
         let sortDescriptor = NSSortDescriptor(key: sortBy.rawValue, ascending: ascending)

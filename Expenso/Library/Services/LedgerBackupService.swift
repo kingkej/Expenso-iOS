@@ -49,7 +49,7 @@ enum LedgerBackupError: LocalizedError {
 enum LedgerBackupCodec {
     static let maximumBytes = 256 * 1_024 * 1_024
     static let format = "ExpensoLedgerBackup"
-    static let version = 2
+    static let version = 3
 
     private static func encoder() -> JSONEncoder {
         let encoder = JSONEncoder()
@@ -97,7 +97,8 @@ enum LedgerBackupCodec {
             for date in [record.createdAt, record.updatedAt, record.occuredOn].compactMap({ $0 }) {
                 guard date.timeIntervalSinceReferenceDate.isFinite else { throw LedgerBackupError.invalidRecord }
             }
-            for text in [record.title, record.note, record.tag, record.type, record.currencyCode, record.amountText].compactMap({ $0 }) {
+            guard payload.version >= 3 || record.paymentMethod == nil else { throw LedgerBackupError.invalidRecord }
+            for text in [record.title, record.note, record.tag, record.type, record.currencyCode, record.amountText, record.paymentMethod].compactMap({ $0 }) {
                 guard text.utf8.count <= 4 * 1_024 * 1_024 else { throw LedgerBackupError.invalidRecord }
                 bytes += text.utf8.count
             }
@@ -182,6 +183,9 @@ enum LedgerBackupService {
         let attributes = context.persistentStoreCoordinator?.managedObjectModel.entitiesByName["ExpenseCD"]?.attributesByName
         guard ["amount", "amountText", "currencyCode", "rateSnapshotData", "createdAt", "updatedAt", "title", "note", "type", "tag", "occuredOn", "imageAttached"]
             .allSatisfy({ attributes?[$0] != nil }) else { throw LedgerBackupError.schemaMismatch }
+        guard attributes?["paymentMethod"] != nil || payload.records.allSatisfy({ $0.paymentMethod == nil }) else {
+            throw LedgerBackupError.schemaMismatch
+        }
         let before = try capture(context: context, defaults: defaults)
         let directory = try recoveryDirectory ?? self.recoveryDirectory()
         let recovery: URL

@@ -1,4 +1,5 @@
 import Foundation
+import CoreData
 import Testing
 @testable import Expenso
 
@@ -211,6 +212,9 @@ struct ReceiptDraftApplicationTests {
         editor.manualRate = "47.2"
         #expect(!editor.isPristineDraft)
         editor.manualRate = ""
+        editor.selectedPaymentMethod = .card
+        #expect(!editor.isPristineDraft)
+        editor.selectedPaymentMethod = nil
         #expect(editor.isPristineDraft)
     }
 
@@ -319,5 +323,163 @@ struct ReceiptDraftApplicationTests {
         #expect(editor.manualRate == "99")
         #expect(editor.occuredOn == date)
         #expect(!editor.imageUpdated)
+    }
+
+    @Test("Payment suggestions fill empty drafts, preserve choices, and allow an explicit change or clear") @MainActor
+    func paymentSuggestions() {
+        let editor = AddExpenseViewModel(baseCurrency: "RUB")
+        func apply(_ method: PaymentMethod?, replace: Bool = false) {
+            editor.applyReceipt(title: "Shop", amount: "12", currency: "RUB", date: nil,
+                type: TRANS_TYPE_EXPENSE, image: nil, paymentMethod: method, replacePaymentMethod: replace)
+        }
+        #expect(editor.selectedPaymentMethod == nil)
+        apply(.card)
+        #expect(editor.selectedPaymentMethod == .card)
+        apply(nil)
+        #expect(editor.selectedPaymentMethod == .card)
+        apply(.cash)
+        #expect(editor.selectedPaymentMethod == .card)
+        apply(.crypto, replace: true)
+        #expect(editor.selectedPaymentMethod == .crypto)
+        apply(nil, replace: true)
+        #expect(editor.selectedPaymentMethod == nil)
+        #expect(editor.firstInvalidField == nil)
+        let anotherCandidate = AddExpenseViewModel(baseCurrency: "RUB")
+        #expect(anotherCandidate.selectedPaymentMethod == nil)
+    }
+}
+
+@Suite("Payment method editor — isolated Core Data integration with blocked network")
+@MainActor
+struct PaymentMethodEditorTests {
+    private func withFixture(_ body: (CurrencyTestStore, UserDefaults, ExchangeRateService) async throws -> Void) async throws {
+        let store = try CurrencyTestStore(version: "ExpensoV3")
+        let suite = "PaymentMethodEditorTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [PaymentMethodNoNetwork.self]
+        let session = URLSession(configuration: configuration)
+        let cache = FileManager.default.temporaryDirectory.appendingPathComponent(suite)
+        defer {
+            session.invalidateAndCancel()
+            defaults.removePersistentDomain(forName: suite)
+            try? FileManager.default.removeItem(at: cache)
+        }
+        try await body(store, defaults, ExchangeRateService(session: session, storageURL: cache))
+    }
+
+    @Test("Import save and reload preserve the reviewed method; edits can change and clear it")
+    func saveEditAndClear() async throws {
+        try await withFixture { store, defaults, rates in
+            let draft = AddExpenseViewModel(baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            draft.applyReceipt(title: "Shop", amount: "12", currency: "RUB", date: nil,
+                type: TRANS_TYPE_EXPENSE, image: nil, paymentMethod: .card)
+            await draft.saveTransaction(managedObjectContext: store.context)
+            #expect(draft.closePresenter && !draft.showAlert)
+            store.context.reset()
+            let saved = try #require(try LedgerStoreTransaction.records(in: store.context).first)
+            #expect(saved.paymentMethod == "card")
+            let editor = AddExpenseViewModel(expenseObj: saved, baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            #expect(editor.selectedPaymentMethod == .card)
+            editor.selectedPaymentMethod = .cash
+            await editor.saveTransaction(managedObjectContext: store.context)
+            #expect(saved.paymentMethod == "cash" && editor.closePresenter)
+            let clearing = AddExpenseViewModel(expenseObj: saved, baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            clearing.applyReceipt(title: "Shop", amount: "12", currency: "RUB", date: nil,
+                type: TRANS_TYPE_EXPENSE, image: nil, paymentMethod: nil, replacePaymentMethod: true)
+            await clearing.saveTransaction(managedObjectContext: store.context)
+            #expect(saved.paymentMethod == nil && clearing.closePresenter)
+        }
+    }
+
+    @Test("A missing method does not block saving a transaction")
+    func unspecifiedSave() async throws {
+        try await withFixture { store, defaults, rates in
+            let draft = AddExpenseViewModel(baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            draft.title = "Unknown method"
+            draft.amount = "12"
+            await draft.saveTransaction(managedObjectContext: store.context)
+            #expect(draft.closePresenter && !draft.showAlert)
+            let saved = try #require(try LedgerStoreTransaction.records(in: store.context).first)
+            #expect(saved.paymentMethod == nil)
+        }
+    }
+
+    @Test("A saved payment method change in another editor prevents stale overwrite")
+    func concurrentMethodChange() async throws {
+        try await withFixture { store, defaults, rates in
+            let saved = try store.transaction(amount: "12", currency: "RUB")
+            saved.paymentMethod = "card"
+            try store.context.save()
+            let editor = AddExpenseViewModel(expenseObj: saved, baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            saved.paymentMethod = "cash"
+            try store.context.save()
+            editor.title = "Stale title"
+            await editor.saveTransaction(managedObjectContext: store.context)
+            #expect(editor.showAlert && !editor.closePresenter)
+            #expect(saved.paymentMethod == "cash" && saved.title == "Fixture")
+        }
+    }
+
+    @Test("An unfamiliar stored method survives unrelated edits until explicitly cleared")
+    func unknownStoredMethod() async throws {
+        try await withFixture { store, defaults, rates in
+            let saved = try store.transaction(amount: "12", currency: "RUB")
+            saved.paymentMethod = "future-method"
+            try store.context.save()
+            let editor = AddExpenseViewModel(expenseObj: saved, baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            editor.applyReceipt(title: "Updated", amount: "12", currency: "RUB", date: nil,
+                type: TRANS_TYPE_EXPENSE, image: nil, paymentMethod: .card)
+            #expect(editor.selectedPaymentMethod == nil)
+            await editor.saveTransaction(managedObjectContext: store.context)
+            #expect(editor.closePresenter && saved.paymentMethod == "future-method")
+            let clearing = AddExpenseViewModel(expenseObj: saved, baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            clearing.selectedPaymentMethod = nil
+            await clearing.saveTransaction(managedObjectContext: store.context)
+            #expect(clearing.closePresenter && saved.paymentMethod == nil)
+        }
+    }
+
+    @Test("A failed save rolls the stored method back while retaining the user's draft")
+    func saveRollback() async throws {
+        try await withFixture { store, defaults, rates in
+            let context = PaymentMethodFailingSaveContext(concurrencyType: .mainQueueConcurrencyType)
+            context.persistentStoreCoordinator = store.coordinator
+            let saved = try LedgerStoreTransaction.insert(in: context)
+            saved.title = "Original"
+            saved.amount = 12
+            saved.amountText = "12"
+            saved.currencyCode = "RUB"
+            saved.type = TRANS_TYPE_EXPENSE
+            saved.tag = TRANS_TAG_FOOD
+            saved.occuredOn = Date()
+            saved.paymentMethod = "card"
+            try context.save()
+            let editor = AddExpenseViewModel(expenseObj: saved, baseCurrency: "RUB", categoryDefaults: defaults, rateService: rates)
+            editor.selectedPaymentMethod = .crypto
+            context.shouldFail = true
+            await editor.saveTransaction(managedObjectContext: context)
+            #expect(editor.showAlert && !editor.closePresenter)
+            #expect(saved.paymentMethod == "card")
+            #expect(editor.selectedPaymentMethod == .crypto)
+        }
+    }
+}
+
+private final class PaymentMethodNoNetwork: URLProtocol, @unchecked Sendable {
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        Issue.record("Payment method editor tests must not request exchange rates")
+        client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
+    }
+    override func stopLoading() {}
+}
+
+private final class PaymentMethodFailingSaveContext: NSManagedObjectContext, @unchecked Sendable {
+    var shouldFail = false
+    override func save() throws {
+        if shouldFail { throw NSError(domain: "PaymentMethodSaveFixture", code: 1) }
+        try super.save()
     }
 }

@@ -90,6 +90,7 @@ private struct RemoteCandidateVerificationView: View {
     @StateObject private var reviewModel: AddExpenseViewModel
     @State private var hasDate: Bool
     @State private var replaceCategory = false
+    @State private var replacePaymentMethod = false
     @State private var attachImage = false
     @State private var showCurrency = false
     @State private var saved = false
@@ -107,14 +108,15 @@ private struct RemoteCandidateVerificationView: View {
         self.onSaved = onSaved
         self.onApplied = onApplied
         // Each presented candidate owns an independent, one-time-seeded draft.
-        _reviewModel = StateObject(wrappedValue: Self.makeModel(candidate))
+        _reviewModel = StateObject(wrappedValue: Self.makeModel(candidate, editor: editor))
         _hasDate = State(initialValue: candidate.date != nil)
     }
 
-    private static func makeModel(_ candidate: RemoteImageTransaction) -> AddExpenseViewModel {
-        let model = AddExpenseViewModel()
+    private static func makeModel(_ candidate: RemoteImageTransaction, editor: AddExpenseViewModel) -> AddExpenseViewModel {
+        let model = AddExpenseViewModel(paymentMethod: editor.expenseObj != nil ? editor.paymentMethodRawValue : nil)
         model.applyReceipt(title: candidate.title ?? "", amount: candidate.amount ?? "",
-            currency: candidate.currency ?? "", date: candidate.date, type: candidate.type ?? "", image: nil)
+            currency: candidate.currency ?? "", date: candidate.date, type: candidate.type ?? "", image: nil,
+            paymentMethod: candidate.paymentMethod)
         model.selectedTag = candidate.category ?? ""
         return model
     }
@@ -161,6 +163,19 @@ private struct RemoteCandidateVerificationView: View {
                     }
                     .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
                     if editor.expenseObj != nil { Toggle("Replace Current Category", isOn: $replaceCategory) }
+                    ExpenseMenuRow(title: "Payment Method", value: reviewModel.selectedPaymentMethod?.title ?? "Not specified") {
+                        Button("Not specified") {
+                            reviewModel.selectedPaymentMethod = nil
+                            replacePaymentMethod = true
+                        }
+                        ForEach(PaymentMethod.allCases, id: \.self) { method in
+                            Button(method.title) {
+                                reviewModel.selectedPaymentMethod = method
+                                replacePaymentMethod = true
+                            }
+                        }
+                    }
+                    .simultaneousGesture(TapGesture().onEnded { focusedField = nil })
                     if editor.expenseObj == nil || replaceCategory {
                         ExpenseMenuRow(title: "Category", value: categories.first(where: { $0.id == reviewModel.selectedTag })?.name ?? "Choose Category",
                             symbol: categories.first(where: { $0.id == reviewModel.selectedTag })?.symbol) {
@@ -286,7 +301,8 @@ private struct RemoteCandidateVerificationView: View {
         let image = attachImage ? UIImage(data: imageData) : nil
         if editor.expenseObj != nil {
             editor.applyReceipt(title: reviewModel.title, amount: reviewModel.amount, currency: reviewModel.currency,
-                date: reviewModel.occuredOn, type: reviewModel.selectedType, image: image)
+                date: reviewModel.occuredOn, type: reviewModel.selectedType, image: image,
+                paymentMethod: reviewModel.selectedPaymentMethod, replacePaymentMethod: replacePaymentMethod)
             if replaceCategory { editor.selectedTag = reviewModel.selectedTag; editor.tagTitle = getTransTagTitle(transTag: reviewModel.selectedTag) }
             onApplied()
             dismiss()

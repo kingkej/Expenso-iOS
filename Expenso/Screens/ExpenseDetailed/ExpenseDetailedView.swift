@@ -43,6 +43,9 @@ struct ExpenseDetailedView: View {
                             }
                         }
                         ExpenseValueRow(title: "Type") { Text(expense.type == TRANS_TYPE_INCOME ? "Income" : "Expense") }
+                        if let method = expense.paymentMethodValue {
+                            ExpenseValueRow(title: "Payment Method") { Text(method.title) }
+                        }
                         ExpenseValueRow(title: "Category") {
                             Text(CategoryCatalog.decode(categoryData).first { $0.id == expense.tag }?.name
                                 ?? getTransTagTitle(transTag: expense.tag ?? ""))
