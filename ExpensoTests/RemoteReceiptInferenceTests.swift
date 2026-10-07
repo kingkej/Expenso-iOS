@@ -7,8 +7,50 @@ import UniformTypeIdentifiers
 
 /// Local clipboard integration only; image preparation never invokes inference.
 @MainActor
-@Suite("Unified import clipboard — no network or ledger access")
+@Suite("Unified import clipboard — no network or ledger access", .serialized)
 struct ReceiptImportClipboardTests {
+    @Test func imagePasteRemainsAvailableWhenUIKitSuggestsOnlyAutofill() throws {
+        let previous = UIPasteboard.general.items
+        defer { UIPasteboard.general.items = previous }
+        UIPasteboard.general.image = UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20)).image { _ in }
+        let editor = ReceiptPasteEditor.PasteTextView()
+        let autofill = UIMenu(title: "AutoFill", children: [UIAction(title: "Contact") { _ in }])
+        let menu = try #require(editor.editMenuInteraction(UIEditMenuInteraction(delegate: editor),
+            menuFor: UIEditMenuConfiguration(identifier: nil, sourcePoint: .zero), suggestedActions: [autofill]))
+        #expect(menu.children.contains { ($0 as? UICommand)?.action == #selector(UIResponderStandardEditActions.paste(_:)) })
+        #expect(menu.children.contains { $0 === autofill })
+    }
+
+    @Test func systemImagePasteProvidersReachImportInsteadOfTextInsertion() {
+        let editor = ReceiptPasteEditor.PasteTextView()
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20)).image { _ in }
+        let provider = NSItemProvider(object: image)
+        var received: NSItemProvider?
+        editor.onImagePaste = { received = $0 }
+        #expect(editor.canPaste([provider]))
+        editor.paste(itemProviders: [provider])
+        #expect(received === provider)
+        #expect(editor.text.isEmpty)
+        editor.isEditable = false
+        received = nil
+        #expect(!editor.canPaste([provider]))
+        editor.paste(itemProviders: [provider])
+        #expect(received == nil)
+    }
+
+    @Test func existingNativePasteCommandIsPreservedWhenTextIsSelected() throws {
+        let previous = UIPasteboard.general.items
+        defer { UIPasteboard.general.items = previous }
+        UIPasteboard.general.image = UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20)).image { _ in }
+        let editor = ReceiptPasteEditor.PasteTextView()
+        editor.text = "Existing draft"
+        let paste = UICommand(title: "Paste", action: #selector(UIResponderStandardEditActions.paste(_:)))
+        let systemMenu = UIMenu(children: [paste])
+        let menu = try #require(editor.importPasteMenu(suggestedActions: [systemMenu]))
+        #expect(menu.children.count == 1)
+        #expect(menu.children.first === systemMenu)
+    }
+
     private func waitForCompletion(_ model: ReceiptImportModel) async throws {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: .seconds(5))

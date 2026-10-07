@@ -479,7 +479,7 @@ struct ReceiptImportView: View {
 }
 
 /// UIKit's edit menu supports image providers as well as ordinary text insertion.
-private struct ReceiptPasteEditor: UIViewRepresentable {
+struct ReceiptPasteEditor: UIViewRepresentable {
     @Binding var text: String
     @Binding var focused: Bool
     let isEnabled: Bool
@@ -564,22 +564,51 @@ private struct ReceiptPasteEditor: UIViewRepresentable {
                                  menuFor configuration: UIEditMenuConfiguration,
                                  suggestedActions: [UIMenuElement]) -> UIMenu? {
             guard isEditable, text.isEmpty else { return nil }
-            // UIKit's standard Paste action carries the user-initiated paste
-            // authorization when the clipboard belongs to another app.
-            if !suggestedActions.isEmpty { return UIMenu(children: suggestedActions) }
-            let attributes: UIMenuElement.Attributes = canPerformAction(
-                #selector(UIResponderStandardEditActions.paste(_:)), withSender: nil) ? [] : .disabled
-            let action = UIAction(title: "Paste", attributes: attributes) { [weak self] _ in
-                self?.paste(nil)
+            return importPasteMenu(suggestedActions: suggestedActions)
+        }
+
+        func importPasteMenu(suggestedActions: [UIMenuElement]) -> UIMenu? {
+            guard isEditable else { return nil }
+            let paste = #selector(UIResponderStandardEditActions.paste(_:))
+            func containsPaste(_ element: UIMenuElement) -> Bool {
+                if let command = element as? UICommand { return command.action == paste }
+                if let menu = element as? UIMenu { return menu.children.contains(where: containsPaste) }
+                return false
             }
-            return UIMenu(children: [action])
+            // AutoFill can be suggested without Paste. Preserve system commands,
+            // adding the standard responder action only when it is missing.
+            guard canPerformAction(paste, withSender: nil), !suggestedActions.contains(where: containsPaste) else {
+                return UIMenu(children: suggestedActions)
+            }
+            let command = UICommand(title: String(localized: "Paste"), action: paste)
+            return UIMenu(children: [command] + suggestedActions)
+        }
+
+        private func imageProvider(in providers: [NSItemProvider]) -> NSItemProvider? {
+            providers.first {
+                $0.canLoadObject(ofClass: UIImage.self) || $0.hasItemConformingToTypeIdentifier(UTType.image.identifier)
+            }
+        }
+
+        override func canPaste(_ itemProviders: [NSItemProvider]) -> Bool {
+            isEditable && (imageProvider(in: itemProviders) != nil || super.canPaste(itemProviders))
+        }
+
+        override func paste(itemProviders: [NSItemProvider]) {
+            guard isEditable else { return }
+            if let image = imageProvider(in: itemProviders) {
+                onImagePaste?(image)
+            } else {
+                super.paste(itemProviders: itemProviders)
+            }
         }
 
         override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
             if action == #selector(UIResponderStandardEditActions.paste(_:)) {
                 // Availability checks do not read clipboard contents or trigger
                 // a paste permission prompt while UIKit builds the edit menu.
-                return isEditable && (UIPasteboard.general.hasImages || UIPasteboard.general.hasStrings)
+                return isEditable && (UIPasteboard.general.hasImages || UIPasteboard.general.hasStrings
+                    || super.canPerformAction(action, withSender: sender))
             }
             return super.canPerformAction(action, withSender: sender)
         }
@@ -616,6 +645,17 @@ private struct ReceiptPasteEditor: UIViewRepresentable {
         func textViewDidBeginEditing(_ textView: UITextView) { parent.focused = true }
         func textViewDidEndEditing(_ textView: UITextView) {
             if parent.focused { parent.focused = false }
+        }
+
+        func textView(_ textView: UITextView, editMenuForTextIn range: NSRange,
+                      suggestedActions: [UIMenuElement]) -> UIMenu? {
+            (textView as? PasteTextView)?.importPasteMenu(suggestedActions: suggestedActions)
+        }
+
+        @available(iOS 26.0, *)
+        func textView(_ textView: UITextView, editMenuForTextInRanges ranges: [NSValue],
+                      suggestedActions: [UIMenuElement]) -> UIMenu? {
+            (textView as? PasteTextView)?.importPasteMenu(suggestedActions: suggestedActions)
         }
 
         func pasteImage(_ provider: NSItemProvider) {
